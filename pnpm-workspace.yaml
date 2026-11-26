@@ -1,0 +1,7 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+minimumReleaseAgeExclude:
+  - '@module-federation/vite@1.25.1'
+  - '@types/react@19.3.3'
+  - vite@8.4.0

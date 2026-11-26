@@ -1,0 +1,8 @@
+/*
+ * Styles shipped with the exposed module (./App). No preflight: when loaded inside the host,
+ * the host already provides the CSS reset, so the remote must not inject a second one.
+ */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "@repo/ui/theme.css";

@@ -1,0 +1,466 @@
+# Federation — React micro frontends
+
+A **pnpm + Turborepo** monorepo for a React micro frontend application, built with **Vite** and
+[`@module-federation/vite`](https://github.com/module-federation/vite).
+
+A **host** application (the shell) provides the layout (header, navigation, side menu) and loads
+independently built and deployed **remote** applications at runtime. All applications share a
+React component library.
+
+## Table of contents
+
+- [Tech stack](#tech-stack)
+- [Repository structure](#repository-structure)
+- [Getting started](#getting-started)
+- [Architecture](#architecture)
+  - [Overview](#overview)
+  - [Roles of each workspace](#roles-of-each-workspace)
+  - [Runtime loading sequence](#runtime-loading-sequence)
+  - [Shared dependencies](#shared-dependencies)
+  - [Styling (Tailwind CSS)](#styling-tailwind-css)
+  - [Routing](#routing)
+  - [Fault isolation](#fault-isolation)
+  - [Typing remote modules](#typing-remote-modules)
+  - [Turborepo vs Module Federation](#turborepo-vs-module-federation)
+- [Creating a new micro frontend](#creating-a-new-micro-frontend)
+- [Deployment](#deployment)
+- [Known limitations](#known-limitations)
+
+## Tech stack
+
+| Tool | Role |
+| --- | --- |
+| [pnpm](https://pnpm.io) workspaces | Package manager, links workspace packages together |
+| [Turborepo](https://turborepo.com) | Task orchestration (`dev`, `build`, `typecheck`…) and caching |
+| [Vite](https://vite.dev) | Dev server and bundler for each app |
+| [`@module-federation/vite`](https://github.com/module-federation/vite) | Runtime composition of independently deployed apps |
+| [React](https://react.dev) + [React Router](https://reactrouter.com) | UI and client-side routing |
+| [Tailwind CSS v4](https://tailwindcss.com) (`@tailwindcss/vite`) | Styling, with shared design tokens in `@repo/ui` |
+| [TypeScript](https://www.typescriptlang.org) | Type checking |
+
+## Repository structure
+
+```
+.
+├── apps/
+│   ├── host/                    # Shell application — port 5000
+│   │   ├── src/
+│   │   │   ├── components/
+│   │   │   │   ├── Header.tsx       # Brand + top navigation
+│   │   │   │   ├── Navigation.tsx   # Horizontal top-level links
+│   │   │   │   ├── Menu.tsx         # Collapsible side menu
+│   │   │   │   └── RemoteRoute.tsx  # Suspense + ErrorBoundary wrapper for remotes
+│   │   │   ├── pages/               # Host-owned pages (Home, Settings, 404)
+│   │   │   ├── App.tsx              # Layout + routes, lazy-loads remotes
+│   │   │   ├── index.css            # Tailwind entry (preflight + utilities + @repo/ui theme)
+│   │   │   ├── navigation.ts        # Single source of truth for nav items
+│   │   │   └── remotes.d.ts         # Type declarations for remote modules
+│   │   ├── .env.example             # Remote URLs
+│   │   └── vite.config.ts           # Declares the remotes
+│   ├── catalog/                 # Remote micro frontend — port 5001
+│   │   ├── src/
+│   │   │   ├── App.tsx              # Exposed as `catalog/App`
+│   │   │   ├── app.css              # Tailwind utilities shipped with ./App (no preflight)
+│   │   │   ├── main.tsx             # Standalone entry point
+│   │   │   ├── standalone.css       # Preflight, standalone mode only
+│   │   │   └── pages/
+│   │   └── vite.config.ts           # Exposes ./App
+│   └── orders/                  # Remote micro frontend — port 5002 (same layout as catalog)
+├── packages/
+│   └── ui/                      # @repo/ui — shared React components, cn() helper, Tailwind theme
+├── pnpm-workspace.yaml
+├── tsconfig.base.json           # Shared TypeScript options
+└── turbo.json                   # Turborepo task pipeline
+```
+
+## Getting started
+
+Prerequisites: Node.js 22+ and pnpm (the version is pinned in the root `package.json` → `packageManager`).
+
+```sh
+pnpm install
+pnpm dev
+```
+
+| URL | Application |
+| --- | --- |
+| http://localhost:5000 | Host (with catalog and orders loaded inside) |
+| http://localhost:5001 | Catalog, standalone |
+| http://localhost:5002 | Orders, standalone |
+
+| Command | Description |
+| --- | --- |
+| `pnpm dev` | Start all apps in dev mode (in parallel) |
+| `pnpm build` | Production build of all apps (cached by Turborepo) |
+| `pnpm preview` | Build, then serve the production bundles on the same ports |
+| `pnpm typecheck` | Type-check every package |
+| `pnpm clean` | Remove build outputs |
+| `pnpm --filter <app> dev` | Run a single app, e.g. `pnpm --filter orders dev` |
+
+## Architecture
+
+### Overview
+
+```mermaid
+flowchart LR
+  subgraph Browser
+    H["host (shell)<br/>Header · Navigation · Menu · Router"]
+    C["catalog/App"]
+    O["orders/App"]
+    H -- "/catalog/*" --> C
+    H -- "/orders/*" --> O
+  end
+
+  subgraph Deployments["Independent deployments"]
+    HD["host<br/>app.example.com"]
+    CD["catalog<br/>remoteEntry.js"]
+    OD["orders<br/>remoteEntry.js"]
+  end
+
+  HD -. "index.html + bundle" .-> H
+  CD -. "loaded at runtime" .-> C
+  OD -. "loaded at runtime" .-> O
+
+  UI["@repo/ui<br/>(shared singleton)"]
+  H --- UI
+  C --- UI
+  O --- UI
+```
+
+There are two levels of composition:
+
+- **Build time (monorepo):** all apps live in one repository and share `@repo/ui`, TypeScript
+  settings and a single lockfile, so dependency versions stay aligned.
+- **Runtime (Module Federation):** each app is built and deployed **independently**. The host
+  downloads a remote's `remoteEntry.js` only when the user navigates to it. Redeploying a remote
+  updates the host **without rebuilding the host**.
+
+### Roles of each workspace
+
+| Workspace | Type | Responsibilities |
+| --- | --- | --- |
+| `apps/host` | Host / shell | Global layout (`Header`, `Navigation`, `Menu`), top-level routing, host-owned pages, loads remotes. Declares the remotes in `federation({ remotes })`. |
+| `apps/catalog`, `apps/orders` | Remotes | Own a business domain. Expose `./App` through `federation({ exposes })`. Also run **standalone** through their own `main.tsx`. |
+| `packages/ui` | Library | Reusable components (`Button`, `Card`, `Badge`, `Spinner`, `ErrorBoundary`) styled with Tailwind, the `cn()` class helper and the shared Tailwind theme (`theme.css`). Consumed **from source** (`exports` points to `src/index.ts`), so it has no build step. |
+
+Each remote has **two entry points**:
+
+| Entry point | Used when | Provides |
+| --- | --- | --- |
+| `src/main.tsx` | The app runs standalone (`http://localhost:5001`) | Its own `BrowserRouter`, the CSS reset (`standalone.css`) and a minimal page around `App` |
+| `src/App.tsx` (exposed `./App`) | The app is loaded by the host | Only the routes, pages and their styles (`app.css`); the router comes from the host |
+
+### Runtime loading sequence
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant H as Host (app.example.com)
+  participant R as Remote (catalog.example.com)
+
+  U->>H: GET /
+  H-->>U: index.html + host bundle (React, Router, @repo/ui)
+  U->>H: navigates to /catalog
+  H->>R: GET /remoteEntry.js
+  R-->>H: remote container
+  Note over H,R: Shared scope negotiation:<br/>react, react-dom, react-router and @repo/ui<br/>are reused from the host (singletons)
+  H->>R: GET /assets/App-[hash].js
+  R-->>H: remote code
+  H-->>U: renders catalog/App inside the host layout
+```
+
+### Shared dependencies
+
+The `shared` section must be **identical in the host and in every remote**:
+
+```ts
+shared: {
+  react: { singleton: true },
+  "react-dom": { singleton: true },
+  "react-router": { singleton: true },
+  "@repo/ui": { singleton: true },
+},
+```
+
+- `react` / `react-dom` **must** be singletons. Two copies of React cause `Invalid hook call` errors.
+- `react-router` must be a singleton so that a remote's `<Routes>` uses the host's router context.
+- `@repo/ui` is shared so that its components are loaded once.
+
+### Styling (Tailwind CSS)
+
+Styling uses [Tailwind CSS v4](https://tailwindcss.com) through the `@tailwindcss/vite` plugin, which
+is registered in every app's `vite.config.ts`. There is no `tailwind.config.js`: configuration is
+CSS-first.
+
+**Shared theme.** [`packages/ui/src/theme.css`](packages/ui/src/theme.css) defines the design tokens
+with `@theme`, which generates utilities such as `bg-primary`, `text-muted` and `border-border`. It
+also contains `@source "./"`, so every app that imports it also scans the `@repo/ui` components and
+generates the classes they use.
+
+| Token | Utility examples |
+| --- | --- |
+| `--color-primary`, `--color-primary-hover`, `--color-primary-soft` | `bg-primary`, `hover:bg-primary-hover`, `bg-primary-soft` |
+| `--color-surface`, `--color-background`, `--color-border` | `bg-surface`, `bg-background`, `border-border` |
+| `--color-fg`, `--color-muted` | `text-fg`, `text-muted` |
+| `--font-sans` | `font-sans` (applied to `body`) |
+
+**CSS entry points.** Each app generates its own CSS from the classes found in its sources:
+
+| File | Imports | Loaded by |
+| --- | --- | --- |
+| `apps/host/src/index.css` | `tailwindcss` (preflight + utilities) + `@repo/ui/theme.css` | `main.tsx` of the host |
+| `apps/<remote>/src/app.css` | Tailwind theme + utilities only + `@repo/ui/theme.css` | the exposed `App.tsx`, so it ships with the remote |
+| `apps/<remote>/src/standalone.css` | Tailwind preflight only | the remote's `main.tsx` (standalone mode only) |
+
+Remotes do **not** ship the preflight (CSS reset) with their exposed module: inside the host, the
+host's preflight already applies, and a second reset injected later could override host styles.
+All files declare the same cascade layer order (`theme, base, components, utilities`), so utilities
+from the host and from remotes never conflict, even when a class is generated twice.
+
+**Class merging.** Use `cn()` from `@repo/ui` to combine classes. It is based on `tailwind-merge`,
+so a `className` passed to a component overrides its default utilities:
+
+```tsx
+<Button className="px-8">Wide button</Button>   // px-8 replaces the default px-4
+```
+
+### Routing
+
+- The host mounts each remote under a wildcard route: `<Route path="orders/*" … />`.
+- Remotes declare **relative** routes only (`index`, `":orderId"`) and navigate relatively
+  (`navigate(id)`, `navigate("..", { relative: "path" })`).
+- Never hard-code the mount path (`/orders/...`) inside a remote. The same code works at `/` when
+  standalone and at `/orders` inside the host.
+- Navigation items are defined once in [`apps/host/src/navigation.ts`](apps/host/src/navigation.ts)
+  and rendered by both `Navigation` (header) and `Menu` (sidebar).
+
+### Fault isolation
+
+Remotes are rendered through [`RemoteRoute`](apps/host/src/components/RemoteRoute.tsx):
+
+```tsx
+const OrdersApp = lazy(() => import("orders/App"));
+
+<Route path="orders/*" element={<RemoteRoute name="Orders" component={OrdersApp} />} />
+```
+
+`RemoteRoute` wraps the remote in:
+
+- `Suspense`, which shows a spinner while `remoteEntry.js` and the remote's chunks download;
+- `ErrorBoundary` (from `@repo/ui`), which shows "*Orders is unavailable*" with a **Retry** button if
+  the remote cannot be loaded or throws. The header, menu and other remotes keep working.
+
+### Typing remote modules
+
+`import("orders/App")` is not a real package. It is resolved **at runtime** by Module Federation, so
+TypeScript cannot find it on its own. [`apps/host/src/remotes.d.ts`](apps/host/src/remotes.d.ts)
+declares each exposed module:
+
+```ts
+declare module "orders/App" {
+  import type { ComponentType } from "react";
+  const App: ComponentType;
+  export default App;
+}
+```
+
+This file only affects type checking and has no runtime effect. It is a hand-written contract: keep
+it in sync with what the remote really exposes. Alternatives are the Module Federation type
+generation (`dts: true`) or a `tsconfig` `paths` alias to the remote's sources.
+
+### Turborepo vs Module Federation
+
+They solve different problems and complement each other:
+
+| | Module Federation | Turborepo |
+| --- | --- | --- |
+| When | **Runtime**, in the browser | **Development / CI** |
+| Purpose | Compose separately deployed bundles into one app | Run tasks across workspaces in the right order, with caching |
+| Configured in | each `vite.config.ts` | `turbo.json` |
+| Shipped to production | Yes (runtime in the bundle) | No |
+
+Turborepo provides `pnpm dev` across all apps, build caching (keyed on env vars such as
+`REMOTE_BASE_URL`), and affected-only builds in CI (`turbo run build --filter=...[origin/main]`).
+
+## Creating a new micro frontend
+
+The example below adds an app called **`billing`** on **port 5003**, mounted at **`/billing/*`**.
+
+> **Naming rule:** the federation `name` must be a valid JavaScript identifier, with no dashes
+> (`billing` or `userProfile`, not `user-profile`). It is used as a global container name.
+
+### 1. Copy an existing remote
+
+```powershell
+robocopy apps\orders apps\billing /E /XD node_modules dist .turbo .__mf__temp
+```
+
+```sh
+# macOS / Linux
+rsync -a --exclude node_modules --exclude dist --exclude .turbo --exclude .__mf__temp apps/orders/ apps/billing/
+```
+
+### 2. Rename it and assign a port
+
+`apps/billing/package.json`:
+
+```json
+"name": "billing",
+```
+
+`apps/billing/vite.config.ts`:
+
+```ts
+const PORT = 5003;
+// ...
+federation({
+  name: "billing",
+  filename: "remoteEntry.js",
+  manifest: true,
+  exposes: {
+    "./App": "./src/App.tsx",
+  },
+  shared: { /* keep identical to the host */ },
+  dts: false,
+}),
+```
+
+`apps/billing/index.html`: update the `<title>`.
+
+### 3. Implement the app
+
+- `src/App.tsx`: the exposed component. Declare **relative** routes only. Keep the
+  `import "./app.css"` at the top, so that the remote's styles ship with it.
+- `src/main.tsx`: the standalone entry. Keep the `BrowserRouter` +
+  `<Route path="/*" element={<App />} />` wrapper and the `import "./standalone.css"`, and update the label.
+- Replace `src/data.ts` and `src/pages/*` with your own code. Style with Tailwind utility classes
+  and the theme tokens, and use `@repo/ui` components for a consistent look.
+
+### 4. Register the remote in the host
+
+`apps/host/vite.config.ts`:
+
+```ts
+const billingUrl = env.VITE_BILLING_URL ?? "http://localhost:5003";
+// ...
+remotes: {
+  // ...existing remotes
+  billing: {
+    type: "module",
+    name: "billing",
+    entry: `${billingUrl}/remoteEntry.js`,
+    entryGlobalName: "billing",
+    shareScope: "default",
+  },
+},
+```
+
+`apps/host/src/remotes.d.ts`:
+
+```ts
+declare module "billing/App" {
+  import type { ComponentType } from "react";
+  const App: ComponentType;
+  export default App;
+}
+```
+
+`apps/host/src/App.tsx`:
+
+```tsx
+const BillingApp = lazy(() => import("billing/App"));
+// ...
+<Route path="billing/*" element={<RemoteRoute name="Billing" component={BillingApp} />} />
+```
+
+`apps/host/src/navigation.ts`:
+
+```ts
+{ to: "/billing", label: "Billing", icon: "💳" },
+```
+
+### 5. Declare the environment variable
+
+- `turbo.json`: add `"VITE_BILLING_URL"` to `tasks.build.env` so that the build cache depends on it.
+- `apps/host/.env.example`: add `VITE_BILLING_URL=http://localhost:5003`.
+
+### 6. Install and verify
+
+```sh
+pnpm install
+pnpm typecheck
+pnpm dev
+```
+
+Checklist:
+
+- [ ] http://localhost:5003 and its sub-routes work **standalone**.
+- [ ] http://localhost:5000/billing and its sub-routes work **inside the host**, and the header and menu links are active.
+- [ ] Stopping the billing dev server shows "*Billing is unavailable*" in the host without breaking other pages.
+- [ ] No `Invalid hook call` error in the console. If there is one, the `shared` config differs between the host and the remote.
+- [ ] `pnpm build` succeeds.
+
+### 7. Set up deployment
+
+Create a dedicated CI pipeline for the new app (see [Deployment](#deployment)), and rebuild the host
+**once** with `VITE_BILLING_URL` pointing to the production URL.
+
+## Deployment
+
+Each app builds to **static files** (`apps/<app>/dist`) and is deployed **independently** to any
+static hosting service (Azure Static Web Apps, Azure Storage + Front Door, S3 + CloudFront, Nginx…).
+`@repo/ui` is bundled into the apps and is not deployed.
+
+### Build-time environment variables
+
+| Variable | App | Description | Default |
+| --- | --- | --- | --- |
+| `REMOTE_BASE_URL` | each remote | Public URL of the remote, **with** trailing slash. Used as Vite `base` so that asset URLs are absolute and resolve from the host origin. | `http://localhost:<port>/` |
+| `VITE_CATALOG_URL` | host | URL of the catalog remote, **without** trailing slash | `http://localhost:5001` |
+| `VITE_ORDERS_URL` | host | URL of the orders remote, **without** trailing slash | `http://localhost:5002` |
+
+```sh
+REMOTE_BASE_URL=https://orders.example.com/ pnpm turbo run build --filter=orders
+VITE_CATALOG_URL=https://catalog.example.com VITE_ORDERS_URL=https://orders.example.com \
+  pnpm turbo run build --filter=host
+```
+
+### Hosting requirements
+
+| Requirement | Applies to | Why |
+| --- | --- | --- |
+| CORS: `Access-Control-Allow-Origin: <host origin>` | remotes | The host loads the remotes' files from another origin |
+| `Cache-Control: no-cache` on `remoteEntry.js`, `mf-manifest.json` and `index.html` | all apps | These files are not content-hashed. Without it, users keep stale versions. |
+| `Cache-Control: max-age=31536000, immutable` on `assets/*` | all apps | Hashed files can be cached forever |
+| SPA fallback to `index.html` | all apps | Client-side routing (`BrowserRouter`) |
+
+Serving all apps behind a single domain through a reverse proxy (for example `/` for the host and
+`/mfe/orders/` for orders) removes the need for CORS.
+
+### CI/CD
+
+Use one pipeline per app, triggered only when the app or one of its dependencies changed:
+
+```yaml
+- run: pnpm install --frozen-lockfile
+- run: pnpm turbo run build --filter=orders...[origin/main]
+  env:
+    REMOTE_BASE_URL: https://orders.example.com/
+- run: # upload apps/orders/dist to the hosting service
+```
+
+A remote redeployed at the same URL goes live in the host immediately. Rolling back means
+redeploying the previous `dist`.
+
+## Known limitations
+
+- **Remote URLs are fixed at build time.** The host bakes `VITE_*_URL` into its bundle, so you need
+  one host build per environment. To promote the same artifact across environments, register remotes
+  at startup from a runtime `config.json` with `registerRemotes()` from `@module-federation/runtime`.
+- **`@repo/ui` singleton versioning.** All apps declare `@repo/ui@0.0.0`, so the copy loaded first,
+  the host's, wins. A UI change deployed with a remote only does not show up until the host is
+  redeployed. Either bump the `@repo/ui` version on each change (for example with Changesets), or
+  remove it from `shared` so that each app bundles its own copy.
+- **Major upgrades** of React or React Router must be rolled out to the host and all remotes together.
+- **Remote types are hand-written** in `remotes.d.ts` and can drift from the actual exposed modules
+  (see [Typing remote modules](#typing-remote-modules)).

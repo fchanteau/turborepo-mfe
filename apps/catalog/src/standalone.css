@@ -1,0 +1,3 @@
+/* Standalone mode only (main.tsx): adds the CSS reset that the host provides when federated. */
+@layer theme, base, components, utilities;
+@import "tailwindcss/preflight.css" layer(base);
