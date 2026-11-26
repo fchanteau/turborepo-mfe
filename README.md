@@ -17,7 +17,8 @@ React component library.
   - [Roles of each workspace](#roles-of-each-workspace)
   - [Runtime loading sequence](#runtime-loading-sequence)
   - [Shared dependencies](#shared-dependencies)
-  - [Styling (Tailwind CSS)](#styling-tailwind-css)
+  - [Styling (Tailwind CSS + shadcn/ui)](#styling-tailwind-css--shadcnui)
+  - [Shared UI library (shadcn/ui)](#shared-ui-library-shadcnui)
   - [Routing](#routing)
   - [Fault isolation](#fault-isolation)
   - [Typing remote modules](#typing-remote-modules)
@@ -35,7 +36,8 @@ React component library.
 | [Vite](https://vite.dev) | Dev server and bundler for each app |
 | [`@module-federation/vite`](https://github.com/module-federation/vite) | Runtime composition of independently deployed apps |
 | [React](https://react.dev) + [React Router](https://reactrouter.com) | UI and client-side routing |
-| [Tailwind CSS v4](https://tailwindcss.com) (`@tailwindcss/vite`) | Styling, with shared design tokens in `@repo/ui` |
+| [Tailwind CSS v4](https://tailwindcss.com) (`@tailwindcss/vite`) | Styling |
+| [shadcn/ui](https://ui.shadcn.com) (Base UI primitives, Lucide icons) | Shared UI components and theme in `@repo/ui` |
 | [TypeScript](https://www.typescriptlang.org) | Type checking |
 
 ## Repository structure
@@ -67,7 +69,14 @@ React component library.
 │   │   └── vite.config.ts           # Exposes ./App
 │   └── orders/                  # Remote micro frontend — port 5002 (same layout as catalog)
 ├── packages/
-│   └── ui/                      # @repo/ui — shared React components, cn() helper, Tailwind theme
+│   └── ui/                      # @repo/ui — shadcn/ui workspace
+│       ├── components.json          # shadcn CLI configuration
+│       └── src/
+│           ├── components/          # shadcn components (button, card…) + custom ones
+│           ├── hooks/
+│           ├── lib/utils.ts         # cn() helper
+│           ├── styles/theme.css     # shadcn theme (CSS variables, no preflight)
+│           └── index.ts             # Public API — the only entry apps import
 ├── pnpm-workspace.yaml
 ├── tsconfig.base.json           # Shared TypeScript options
 └── turbo.json                   # Turborepo task pipeline
@@ -141,7 +150,7 @@ There are two levels of composition:
 | --- | --- | --- |
 | `apps/host` | Host / shell | Global layout (`Header`, `Navigation`, `Menu`), top-level routing, host-owned pages, loads remotes. Declares the remotes in `federation({ remotes })`. |
 | `apps/catalog`, `apps/orders` | Remotes | Own a business domain. Expose `./App` through `federation({ exposes })`. Also run **standalone** through their own `main.tsx`. |
-| `packages/ui` | Library | Reusable components (`Button`, `Card`, `Badge`, `Spinner`, `ErrorBoundary`) styled with Tailwind, the `cn()` class helper and the shared Tailwind theme (`theme.css`). Consumed **from source** (`exports` points to `src/index.ts`), so it has no build step. |
+| `packages/ui` | Library | shadcn/ui components (`Button`, `Card`, `Badge`, `Spinner`), custom shared components (`ErrorBoundary`), the `cn()` class helper and the shared theme (`styles/theme.css`). Consumed **from source** (`exports` points to `src/index.ts`), so it has no build step. |
 
 Each remote has **two entry points**:
 
@@ -186,23 +195,32 @@ shared: {
 - `react-router` must be a singleton so that a remote's `<Routes>` uses the host's router context.
 - `@repo/ui` is shared so that its components are loaded once.
 
-### Styling (Tailwind CSS)
+### Styling (Tailwind CSS + shadcn/ui)
 
 Styling uses [Tailwind CSS v4](https://tailwindcss.com) through the `@tailwindcss/vite` plugin, which
 is registered in every app's `vite.config.ts`. There is no `tailwind.config.js`: configuration is
-CSS-first.
+CSS-first. Shared components come from [shadcn/ui](https://ui.shadcn.com) (style `base-nova`, built
+on [Base UI](https://base-ui.com) primitives, icons from [Lucide](https://lucide.dev)).
 
-**Shared theme.** [`packages/ui/src/theme.css`](packages/ui/src/theme.css) defines the design tokens
-with `@theme`, which generates utilities such as `bg-primary`, `text-muted` and `border-border`. It
-also contains `@source "./"`, so every app that imports it also scans the `@repo/ui` components and
-generates the classes they use.
+**Shared theme.** [`packages/ui/src/styles/theme.css`](packages/ui/src/styles/theme.css) is the shadcn
+theme: CSS variables in `:root` and `.dark` (`--background`, `--primary`, `--muted-foreground`,
+`--radius`…), mapped to Tailwind with `@theme inline`. It also imports `tw-animate-css`,
+`shadcn/tailwind.css` and the Geist font, and contains `@source "../"`, so every app that imports it
+also scans the `@repo/ui` components and generates the classes they use. Unlike shadcn's default
+`globals.css`, it does **not** import `tailwindcss` (see below).
 
-| Token | Utility examples |
+| Purpose | Utilities |
 | --- | --- |
-| `--color-primary`, `--color-primary-hover`, `--color-primary-soft` | `bg-primary`, `hover:bg-primary-hover`, `bg-primary-soft` |
-| `--color-surface`, `--color-background`, `--color-border` | `bg-surface`, `bg-background`, `border-border` |
-| `--color-fg`, `--color-muted` | `text-fg`, `text-muted` |
-| `--font-sans` | `font-sans` (applied to `body`) |
+| Page / text | `bg-background`, `text-foreground` |
+| Secondary text | `text-muted-foreground` |
+| Surfaces | `bg-card`, `bg-popover`, `bg-muted`, `bg-accent`, `bg-sidebar` |
+| Brand / actions | `bg-primary text-primary-foreground`, `bg-secondary`, `bg-destructive` |
+| Borders and focus | `border-border` (default on `*`), `border-input`, `ring-ring` |
+| Radius | `rounded-sm` … `rounded-4xl` (derived from `--radius`) |
+
+To change the look (colors, radius, dark mode), edit the variables in `theme.css`, for example with a
+theme generated on [ui.shadcn.com/themes](https://ui.shadcn.com/themes). Dark mode is enabled by
+adding the `dark` class on an ancestor element (`@custom-variant dark`).
 
 **CSS entry points.** Each app generates its own CSS from the classes found in its sources:
 
@@ -217,12 +235,53 @@ host's preflight already applies, and a second reset injected later could overri
 All files declare the same cascade layer order (`theme, base, components, utilities`), so utilities
 from the host and from remotes never conflict, even when a class is generated twice.
 
-**Class merging.** Use `cn()` from `@repo/ui` to combine classes. It is based on `tailwind-merge`,
-so a `className` passed to a component overrides its default utilities:
+**Class merging.** Use `cn()` from `@repo/ui` to combine classes. It resolves conflicting Tailwind
+utilities, so a `className` passed to a component overrides its defaults:
 
 ```tsx
-<Button className="px-8">Wide button</Button>   // px-8 replaces the default px-4
+<Button className="px-8">Wide button</Button>   // px-8 replaces the default px-2.5
 ```
+
+### Shared UI library (shadcn/ui)
+
+`packages/ui` is a shadcn workspace. Its [`components.json`](packages/ui/components.json) tells the
+shadcn CLI where to put files, through package-local
+[subpath imports](https://nodejs.org/api/packages.html#subpath-imports) declared in its
+`package.json`:
+
+| Alias | Folder |
+| --- | --- |
+| `#components/*` | `src/components/*.tsx` |
+| `#lib/*` | `src/lib/*.ts` (`cn()` in `utils.ts`) |
+| `#hooks/*` | `src/hooks/*.ts` |
+
+**Adding a shadcn component:**
+
+```sh
+pnpm --filter @repo/ui ui:add dialog       # runs `shadcn add dialog` inside packages/ui
+```
+
+Then export it from [`packages/ui/src/index.ts`](packages/ui/src/index.ts):
+
+```ts
+export { Dialog, DialogContent, DialogTitle /* … */ } from "#components/dialog";
+```
+
+and use it in any app:
+
+```tsx
+import { Dialog, DialogContent } from "@repo/ui";
+```
+
+> **Import from `@repo/ui` only.** Module Federation shares the `@repo/ui` entry as a singleton.
+> Deep imports such as `@repo/ui/components/button` are not exported, because they would not be
+> shared and each app would load its own copy.
+
+Generated files can be edited freely: they are your code. Custom (non-shadcn) components, such as
+`ErrorBoundary`, also live in `src/components` and are exported the same way.
+
+Current components: `Button`, `Card` (`CardHeader`, `CardTitle`, `CardDescription`, `CardAction`,
+`CardContent`, `CardFooter`), `Badge`, `Spinner` (shadcn) and `ErrorBoundary` (custom).
 
 ### Routing
 

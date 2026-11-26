@@ -1,4 +1,4 @@
-import { Button, Card } from "@repo/ui";
+import { Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@repo/ui";
 import { useNavigate } from "react-router";
 
 export function HomePage() {
@@ -6,13 +6,20 @@ export function HomePage() {
 
   return (
     <section>
-      <h1 className="mb-4 text-2xl font-bold">Welcome</h1>
-      <Card
-        title="Micro frontend demo"
-        footer={<Button onClick={() => navigate("/catalog")}>Open the catalog</Button>}
-      >
-        This shell (host) owns the header, navigation and menu. The catalog is a separately built and
-        deployed app loaded at runtime with Module Federation. Both share React, React Router and @repo/ui.
+      <h1 className="mb-4 font-heading text-2xl font-bold tracking-tight">Welcome</h1>
+      <Card>
+        <CardHeader>
+          <CardTitle>Micro frontend demo</CardTitle>
+          <CardDescription>Host shell + independently deployed remotes</CardDescription>
+        </CardHeader>
+        <CardContent className="text-muted-foreground">
+          This shell (host) owns the header, navigation and menu. The catalog and orders apps are separately
+          built and deployed, and loaded at runtime with Module Federation. They share React, React Router
+          and @repo/ui.
+        </CardContent>
+        <CardFooter>
+          <Button onClick={() => navigate("/catalog")}>Open the catalog</Button>
+        </CardFooter>
       </Card>
     </section>
   );

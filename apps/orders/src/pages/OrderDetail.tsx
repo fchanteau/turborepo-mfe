@@ -1,6 +1,6 @@
-import { Badge, Button, Card } from "@repo/ui";
+import { Badge, Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@repo/ui";
 import { useNavigate, useParams } from "react-router";
-import { orders, orderTotal, statusTone } from "../data.ts";
+import { orders, orderTotal, statusVariant } from "../data.ts";
 
 export function OrderDetail() {
   const { orderId } = useParams();
@@ -10,34 +10,42 @@ export function OrderDetail() {
 
   if (!order) {
     return (
-      <Card title="Order not found" footer={<Button onClick={back}>Back to orders</Button>}>
-        No order matches “{orderId}”.
+      <Card>
+        <CardHeader>
+          <CardTitle>Order not found</CardTitle>
+          <CardDescription>No order matches “{orderId}”.</CardDescription>
+        </CardHeader>
+        <CardFooter>
+          <Button onClick={back}>Back to orders</Button>
+        </CardFooter>
       </Card>
     );
   }
 
   return (
-    <Card
-      title={`Order ${order.id}`}
-      footer={
-        <>
-          <Button variant="ghost" onClick={back}>
-            ← Back
-          </Button>
-          <strong>Total: {orderTotal(order)} €</strong>
-        </>
-      }
-    >
-      <p className="mb-2">
-        {order.customer} · {order.date} · <Badge tone={statusTone[order.status]}>{order.status}</Badge>
-      </p>
-      <ul className="list-disc pl-5">
-        {order.lines.map((line) => (
-          <li key={line.product}>
-            {line.quantity} × {line.product} — {line.quantity * line.unitPrice} €
-          </li>
-        ))}
-      </ul>
+    <Card>
+      <CardHeader>
+        <CardTitle>Order {order.id}</CardTitle>
+        <CardDescription>
+          {order.customer} · {order.date}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col items-start gap-3">
+        <Badge variant={statusVariant[order.status]}>{order.status}</Badge>
+        <ul className="list-disc pl-5">
+          {order.lines.map((line) => (
+            <li key={line.product}>
+              {line.quantity} × {line.product} — {line.quantity * line.unitPrice} €
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+      <CardFooter className="justify-between">
+        <Button variant="ghost" onClick={back}>
+          ← Back
+        </Button>
+        <strong>Total: {orderTotal(order)} €</strong>
+      </CardFooter>
     </Card>
   );
 }

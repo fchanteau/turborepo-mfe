@@ -1,4 +1,5 @@
-import type { BadgeTone } from "@repo/ui";
+import type { Badge } from "@repo/ui";
+import type { ComponentProps } from "react";
 
 export type OrderStatus = "pending" | "shipped" | "delivered";
 
@@ -16,10 +17,10 @@ export interface Order {
   lines: OrderLine[];
 }
 
-export const statusTone: Record<OrderStatus, BadgeTone> = {
-  pending: "warning",
-  shipped: "neutral",
-  delivered: "success",
+export const statusVariant: Record<OrderStatus, ComponentProps<typeof Badge>["variant"]> = {
+  pending: "outline",
+  shipped: "secondary",
+  delivered: "default",
 };
 
 export const orderTotal = (order: Order) =>

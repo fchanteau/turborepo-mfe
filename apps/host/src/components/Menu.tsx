@@ -1,4 +1,4 @@
-import { cn } from "@repo/ui";
+import { Button, cn } from "@repo/ui";
 import { useState } from "react";
 import { NavLink } from "react-router";
 import { navItems } from "../navigation.ts";
@@ -10,19 +10,20 @@ export function Menu() {
   return (
     <aside
       className={cn(
-        "flex flex-col gap-2 border-r border-border bg-surface p-3 transition-[width] duration-150",
+        "flex flex-col gap-2 border-r bg-sidebar p-3 text-sidebar-foreground transition-[width] duration-150",
         collapsed ? "w-14" : "w-50",
       )}
     >
-      <button
-        type="button"
-        className="cursor-pointer self-end text-muted hover:text-fg"
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        className="self-end text-muted-foreground"
         aria-expanded={!collapsed}
         aria-label={collapsed ? "Expand menu" : "Collapse menu"}
         onClick={() => setCollapsed((c) => !c)}
       >
         {collapsed ? "»" : "«"}
-      </button>
+      </Button>
       <nav aria-label="Side menu" className="flex flex-col gap-1">
         {navItems.map((item) => (
           <NavLink
@@ -32,8 +33,8 @@ export function Menu() {
             title={item.label}
             className={({ isActive }) =>
               cn(
-                "flex items-center gap-2.5 whitespace-nowrap rounded-lg p-2 hover:bg-background",
-                isActive && "bg-primary-soft font-semibold text-primary hover:bg-primary-soft",
+                "flex items-center gap-2.5 whitespace-nowrap rounded-lg p-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                isActive && "bg-sidebar-accent font-medium text-sidebar-accent-foreground",
               )
             }
           >

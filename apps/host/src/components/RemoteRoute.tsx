@@ -1,4 +1,14 @@
-import { Button, ErrorBoundary, Spinner } from "@repo/ui";
+import {
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  ErrorBoundary,
+  Spinner,
+} from "@repo/ui";
 import { Suspense, type ComponentType } from "react";
 
 export interface RemoteRouteProps {
@@ -10,12 +20,26 @@ export interface RemoteRouteProps {
 
 function RemoteUnavailable({ name }: { name: string }) {
   return (
-    <div className="rounded-lg border border-dashed border-amber-500 bg-amber-50 p-6">
-      <h2 className="mb-2 text-xl font-bold">{name} is unavailable</h2>
-      <p className="mb-4 text-muted">The micro frontend could not be loaded. Make sure it is running.</p>
-      <Button variant="secondary" onClick={() => window.location.reload()}>
-        Retry
-      </Button>
+    <Card className="ring-destructive/30">
+      <CardHeader>
+        <CardTitle>{name} is unavailable</CardTitle>
+        <CardDescription>The micro frontend could not be loaded.</CardDescription>
+      </CardHeader>
+      <CardContent className="text-muted-foreground">Make sure it is running, then retry.</CardContent>
+      <CardFooter>
+        <Button variant="outline" onClick={() => window.location.reload()}>
+          Retry
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}
+
+function RemoteLoading({ name }: { name: string }) {
+  return (
+    <div className="flex items-center gap-2 p-4 text-sm text-muted-foreground">
+      <Spinner />
+      Loading {name.toLowerCase()}…
     </div>
   );
 }
@@ -24,7 +48,7 @@ function RemoteUnavailable({ name }: { name: string }) {
 export function RemoteRoute({ name, component: Remote }: RemoteRouteProps) {
   return (
     <ErrorBoundary fallback={<RemoteUnavailable name={name} />}>
-      <Suspense fallback={<Spinner label={`Loading ${name.toLowerCase()}…`} />}>
+      <Suspense fallback={<RemoteLoading name={name} />}>
         <Remote />
       </Suspense>
     </ErrorBoundary>

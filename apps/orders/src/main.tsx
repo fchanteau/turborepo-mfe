@@ -10,7 +10,7 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <main className="mx-auto max-w-[960px] p-6">
-        <p className="mb-4 text-muted">Orders micro frontend — standalone mode</p>
+        <p className="mb-4 text-sm text-muted-foreground">Orders micro frontend — standalone mode</p>
         <Routes>
           <Route path="/*" element={<App />} />
         </Routes>

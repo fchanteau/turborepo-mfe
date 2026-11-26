@@ -7,7 +7,7 @@ See [README.md](../README.md) for the full architecture and the step-by-step gui
 
 - `apps/host`: shell app (port 5000). Owns the layout (`Header`, `Navigation`, `Menu`), top-level routing and host pages. Loads remotes at runtime.
 - `apps/catalog` (5001), `apps/orders` (5002): remote micro frontends. Each exposes `./App` and also runs standalone.
-- `packages/ui` (`@repo/ui`): shared React components, the `cn()` class helper and the Tailwind theme (`theme.css`). Consumed **from source** (`exports` → `src/index.ts`), with no build step.
+- `packages/ui` (`@repo/ui`): shadcn/ui workspace (style `base-nova`, Base UI primitives, Lucide icons). Shared components, the `cn()` helper and the theme (`src/styles/theme.css`). Consumed **from source** (`exports` → `src/index.ts`), with no build step.
 - `tsconfig.base.json`: shared compiler options. Every package's `tsconfig.json` extends it.
 
 ## Commands
@@ -64,34 +64,37 @@ Follow the README section "Creating a new micro frontend". Summary of the files 
 5. Update the README (structure, ports, env var tables).
 6. Run `pnpm install`, `pnpm typecheck` and `pnpm build`.
 
-## Shared UI library (`@repo/ui`)
+## Shared UI library (`@repo/ui`, shadcn/ui)
 
-- Add reusable, domain-agnostic components here. Keep business logic in the apps.
-- Export every component and its prop types from `packages/ui/src/index.ts`.
-- Style components with Tailwind utilities and merge classes with `cn()`, so a `className` prop can override defaults. Variants are `Record<Variant, string>` maps of utility classes.
-- `react`, `react-dom` and `tailwindcss` stay `peerDependencies` (and devDependencies for type checking).
+- Prefer shadcn components. Add one with `pnpm --filter @repo/ui ui:add <component>` (runs `shadcn add` in `packages/ui`, per `components.json`). Never copy shadcn code by hand into apps.
+- After adding a component, export it from `packages/ui/src/index.ts`. Apps must import **only** from `"@repo/ui"`: it is the Module Federation singleton, and deep imports (`@repo/ui/components/...`) are intentionally not exported.
+- Inside `packages/ui`, use the package-local subpath imports `#components/*`, `#lib/*` and `#hooks/*` (declared in its `package.json` `imports`), not relative paths or `@repo/ui/...`.
+- shadcn files follow shadcn's conventions: kebab-case file names, `cva` variants, `data-slot` attributes, no semicolons. Keep them when editing generated components. Custom components (e.g. `error-boundary.tsx`) live next to them.
+- Use component composition as shadcn intends, e.g. `Card` > `CardHeader` (`CardTitle`, `CardDescription`) / `CardContent` / `CardFooter`. Use variants (`variant="outline"`, `size="sm"`) before custom classes.
+- Keep business logic in the apps. `@repo/ui` holds domain-agnostic components only.
+- `react`, `react-dom` and `tailwindcss` stay `peerDependencies` (and devDependencies for type checking). Runtime deps of shadcn components (`@base-ui/react`, `lucide-react`, `class-variance-authority`, `cn`…) are `dependencies` of `@repo/ui`.
 - All apps load the singleton from whichever app loads first, usually the host. A UI change deployed only with a remote will not appear until the host is redeployed.
 
 ## Styling (Tailwind CSS v4)
 
 - Use Tailwind utility classes only. Do not add plain CSS files, CSS modules, inline `style` props or BEM classes. Use arbitrary values (`max-w-[960px]`) when needed.
-- Configuration is CSS-first, with no `tailwind.config.js`. Design tokens live in `packages/ui/src/theme.css` (`@theme`). Prefer token utilities (`bg-primary`, `text-muted`, `border-border`, `bg-surface`, `text-fg`) over raw palette colors. Add new tokens there, not in apps.
-- `theme.css` contains `@source "./"` so that every app generates the classes used by `@repo/ui`. Keep it.
+- Configuration is CSS-first, with no `tailwind.config.js`. The theme is shadcn's CSS variables in `packages/ui/src/styles/theme.css` (`:root`, `.dark`, `@theme inline`). Use semantic utilities (`bg-background`, `text-foreground`, `text-muted-foreground`, `bg-card`, `bg-muted`, `bg-accent`, `bg-primary`, `text-primary-foreground`, `border-border`, `bg-sidebar`) instead of raw palette colors, so the theme and dark mode keep working. Change colors there, not in apps.
+- `theme.css` must **not** import `tailwindcss`, unlike shadcn's default `globals.css`. Keep its `@source "../"` so that every app generates the classes used by `@repo/ui`.
 - CSS entry points (do not change this split):
   - host `src/index.css`: `@import "tailwindcss"` + `@import "@repo/ui/theme.css"`.
   - remote `src/app.css`: Tailwind theme + utilities **without preflight** + `@repo/ui/theme.css`. Imported by the exposed `App.tsx`.
   - remote `src/standalone.css`: preflight only. Imported by `main.tsx`.
 - Never import the full `tailwindcss` (preflight) from a remote's exposed code. It would re-inject a CSS reset into the host.
-- Preflight resets headings and lists, so style `h1`–`h6`, `ul` and `ol` explicitly (e.g. `text-2xl font-bold`, `list-disc pl-5`).
-- Build conditional classes with `cn()` (e.g. `cn("base", isActive && "bg-primary-soft")`), not with template strings.
+- Preflight resets headings and lists, so style `h1`–`h6`, `ul` and `ol` explicitly (e.g. `font-heading text-2xl font-bold tracking-tight`, `list-disc pl-5`).
+- Build conditional classes with `cn()` (e.g. `cn("base", isActive && "bg-accent")`), not with template strings.
 - Every app's `vite.config.ts` registers `tailwindcss()` from `@tailwindcss/vite`.
 
 ## Code conventions
 
 - TypeScript strict mode, ESM, `moduleResolution: "bundler"`, `verbatimModuleSyntax`. Use `import type` for type-only imports.
-- Include the `.ts`/`.tsx` extension in relative imports (`./App.tsx`).
+- Include the `.ts`/`.tsx` extension in relative imports in apps (`./App.tsx`). Generated shadcn files in `packages/ui` use extensionless `#…` imports.
 - Function components with named exports. The only default exports are the exposed `App` modules (required by `lazy`).
-- Use `@repo/ui` components (`Button`, `Card`, `Badge`, `Spinner`, `ErrorBoundary`) rather than re-implementing them.
+- Use `@repo/ui` components (`Button`, `Card`, `Badge`, `Spinner`, `ErrorBoundary`…) rather than re-implementing them.
 - Add workspace dependencies with `"workspace:*"`. Keep shared dependency versions aligned across apps (single lockfile).
 - Keep components accessible: semantic elements, `aria-*` on interactive controls, `type="button"` on buttons.
 - Comment only non-obvious code.

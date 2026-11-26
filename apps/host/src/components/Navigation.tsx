@@ -13,8 +13,8 @@ export function Navigation() {
           end={item.to === "/"}
           className={({ isActive }) =>
             cn(
-              "rounded-lg px-3 py-1.5 font-medium text-muted hover:text-fg",
-              isActive && "bg-primary-soft text-primary hover:text-primary",
+              "rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
+              isActive && "bg-accent text-accent-foreground hover:text-accent-foreground",
             )
           }
         >
