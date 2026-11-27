@@ -11,7 +11,11 @@
     "clean": "node -e \"for (const d of ['dist','.turbo','.__mf__temp']) require('fs').rmSync(d,{recursive:true,force:true})\""
   },
   "dependencies": {
+    "@azure/msal-browser": "^5.30.0",
+    "@azure/msal-react": "^5.8.3",
+    "@repo/auth": "workspace:*",
     "@repo/ui": "workspace:*",
+    "lucide-react": "^1.80.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-router": "^7.18.7"

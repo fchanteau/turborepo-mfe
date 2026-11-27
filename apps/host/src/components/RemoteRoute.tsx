@@ -9,13 +9,15 @@ import {
   ErrorBoundary,
   Spinner,
 } from "@repo/ui";
+import type { RemoteAppProps } from "@repo/auth";
 import { Suspense, type ComponentType } from "react";
+import { useAuth } from "../auth/useAuth.ts";
 
 export interface RemoteRouteProps {
   /** Display name used in the loading and error messages. */
   name: string;
   /** Remote component, typically `lazy(() => import("remote/App"))`. */
-  component: ComponentType;
+  component: ComponentType<RemoteAppProps>;
 }
 
 function RemoteUnavailable({ name }: { name: string }) {
@@ -44,12 +46,19 @@ function RemoteLoading({ name }: { name: string }) {
   );
 }
 
-/** Renders a federated micro frontend, isolating loading states and failures from the host shell. */
+/**
+ * Renders a federated micro frontend, isolating loading states and failures from the host shell.
+ * Passes the signed-in user and a token getter to the remote (see `RemoteAppProps` in @repo/auth).
+ */
 export function RemoteRoute({ name, component: Remote }: RemoteRouteProps) {
+  const { user, getAccessToken } = useAuth();
+  // Remote routes are only rendered for signed-in users (AuthenticatedTemplate in App.tsx).
+  if (!user) return null;
+
   return (
     <ErrorBoundary fallback={<RemoteUnavailable name={name} />}>
       <Suspense fallback={<RemoteLoading name={name} />}>
-        <Remote />
+        <Remote user={user} getAccessToken={getAccessToken} />
       </Suspense>
     </ErrorBoundary>
   );

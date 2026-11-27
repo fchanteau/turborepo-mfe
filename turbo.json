@@ -4,7 +4,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "env": ["REMOTE_BASE_URL", "HOST_BASE_URL", "VITE_CATALOG_URL", "VITE_ORDERS_URL"],
+      "env": ["REMOTE_BASE_URL", "HOST_BASE_URL", "VITE_CATALOG_URL", "VITE_ORDERS_URL", "VITE_MSAL_CLIENT_ID", "VITE_MSAL_TENANT_ID"],
       "outputs": ["dist/**"]
     },
     "dev": {

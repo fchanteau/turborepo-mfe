@@ -5,6 +5,7 @@
  */
 export { cn } from "#lib/utils";
 
+export { Avatar, AvatarFallback, AvatarImage } from "#components/avatar";
 export { Badge, badgeVariants } from "#components/badge";
 export { Button, buttonVariants } from "#components/button";
 export {
@@ -16,6 +17,15 @@ export {
   CardHeader,
   CardTitle,
 } from "#components/card";
+export {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "#components/dropdown-menu";
 export { Spinner } from "#components/spinner";
 
 export { ErrorBoundary } from "#components/error-boundary";

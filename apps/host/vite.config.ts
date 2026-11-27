@@ -1,9 +1,34 @@
 import { federation } from "@module-federation/vite";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import { defineConfig, loadEnv } from "vite";
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { dirname, join } from "node:path";
+import { defineConfig, loadEnv, type Plugin } from "vite";
 
 const PORT = 5000;
+
+/**
+ * Serves (dev) and emits (build) `redirect-bridge.js`: the standalone MSAL redirect bridge script
+ * shipped by @azure/msal-browser, loaded by `public/redirect.html`.
+ */
+function msalRedirectBridge(): Plugin {
+  const bridgeDir = dirname(createRequire(import.meta.url).resolve("@azure/msal-browser/redirect-bridge"));
+  const source = () => readFileSync(join(bridgeDir, "msal-redirect-bridge.min.js"), "utf8");
+  return {
+    name: "msal-redirect-bridge",
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (!req.url?.split("?")[0]?.endsWith("/redirect-bridge.js")) return next();
+        res.setHeader("Content-Type", "text/javascript");
+        res.end(source());
+      });
+    },
+    generateBundle() {
+      this.emitFile({ type: "asset", fileName: "redirect-bridge.js", source: source() });
+    },
+  };
+}
 
 export default defineConfig(({ mode }) => {
   const env = { ...loadEnv(mode, process.cwd(), ""), ...process.env };
@@ -19,6 +44,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       tailwindcss(),
+      msalRedirectBridge(),
       federation({
         name: "host",
         remotes: {

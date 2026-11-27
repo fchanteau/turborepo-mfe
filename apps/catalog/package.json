@@ -11,6 +11,7 @@
     "clean": "node -e \"for (const d of ['dist','.turbo','.__mf__temp']) require('fs').rmSync(d,{recursive:true,force:true})\""
   },
   "dependencies": {
+    "@repo/auth": "workspace:*",
     "@repo/ui": "workspace:*",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",

@@ -21,6 +21,7 @@ React component library.
   - [Shared UI library (shadcn/ui)](#shared-ui-library-shadcnui)
   - [Routing](#routing)
   - [Fault isolation](#fault-isolation)
+  - [Authentication (MSAL)](#authentication-msal)
   - [Typing remote modules](#typing-remote-modules)
   - [Turborepo vs Module Federation](#turborepo-vs-module-federation)
 - [Creating a new micro frontend](#creating-a-new-micro-frontend)
@@ -38,6 +39,7 @@ React component library.
 | [React](https://react.dev) + [React Router](https://reactrouter.com) | UI and client-side routing |
 | [Tailwind CSS v4](https://tailwindcss.com) (`@tailwindcss/vite`) | Styling |
 | [shadcn/ui](https://ui.shadcn.com) (Base UI primitives, Lucide icons) | Shared UI components and theme in `@repo/ui` |
+| [MSAL](https://learn.microsoft.com/entra/identity-platform/msal-overview) (`@azure/msal-browser`, `@azure/msal-react`) | Microsoft Entra ID sign-in, in the host only |
 | [TypeScript](https://www.typescriptlang.org) | Type checking |
 
 ## Repository structure
@@ -46,29 +48,39 @@ React component library.
 .
 ├── apps/
 │   ├── host/                    # Shell application — port 5000
+│   │   ├── public/
+│   │   │   └── redirect.html        # MSAL redirect bridge (static, registered in Entra ID)
 │   │   ├── src/
+│   │   │   ├── auth/
+│   │   │   │   ├── msal.ts          # MSAL configuration and instance
+│   │   │   │   └── useAuth.ts       # user, getAccessToken, signIn, signOut
 │   │   │   ├── components/
-│   │   │   │   ├── Header.tsx       # Brand + top navigation
+│   │   │   │   ├── Header.tsx       # Brand + top navigation + user menu
 │   │   │   │   ├── Navigation.tsx   # Horizontal top-level links
 │   │   │   │   ├── Menu.tsx         # Collapsible side menu
-│   │   │   │   └── RemoteRoute.tsx  # Suspense + ErrorBoundary wrapper for remotes
-│   │   │   ├── pages/               # Host-owned pages (Home, Settings, 404)
+│   │   │   │   ├── UserMenu.tsx     # Sign-in button or signed-in user's menu
+│   │   │   │   └── RemoteRoute.tsx  # Suspense + ErrorBoundary wrapper, passes the user to remotes
+│   │   │   ├── pages/               # Host-owned pages (Home, Settings, Sign in, 404)
 │   │   │   ├── App.tsx              # Layout + routes, lazy-loads remotes
 │   │   │   ├── index.css            # Tailwind entry (preflight + utilities + @repo/ui theme)
 │   │   │   ├── navigation.ts        # Single source of truth for nav items
 │   │   │   └── remotes.d.ts         # Type declarations for remote modules
+│   │   ├── .env                     # Entra ID client and tenant IDs (public values)
 │   │   ├── .env.example             # Remote URLs
 │   │   └── vite.config.ts           # Declares the remotes
 │   ├── catalog/                 # Remote micro frontend — port 5001
 │   │   ├── src/
-│   │   │   ├── App.tsx              # Exposed as `catalog/App`
+│   │   │   ├── App.tsx              # Exposed as `catalog/App`, receives RemoteAppProps
 │   │   │   ├── app.css              # Tailwind utilities shipped with ./App (no preflight)
+│   │   │   ├── auth.ts              # AuthContext + useAuth() for the remote's pages
 │   │   │   ├── main.tsx             # Standalone entry point
 │   │   │   ├── standalone.css       # Preflight, standalone mode only
+│   │   │   ├── standaloneAuth.ts    # Placeholder user for standalone mode
 │   │   │   └── pages/
 │   │   └── vite.config.ts           # Exposes ./App
 │   └── orders/                  # Remote micro frontend — port 5002 (same layout as catalog)
 ├── packages/
+│   ├── auth/                    # @repo/auth — types only: AuthUser, RemoteAppProps (host ⇄ remotes contract)
 │   └── ui/                      # @repo/ui — shadcn/ui workspace
 │       ├── components.json          # shadcn CLI configuration
 │       └── src/
@@ -309,6 +321,74 @@ const OrdersApp = lazy(() => import("orders/App"));
 - `ErrorBoundary` (from `@repo/ui`), which shows "*Orders is unavailable*" with a **Retry** button if
   the remote cannot be loaded or throws. The header, menu and other remotes keep working.
 
+### Authentication (MSAL)
+
+The **host** signs users in with Microsoft Entra ID through MSAL (`@azure/msal-browser` +
+`@azure/msal-react`). **Remotes never use MSAL**: they receive the signed-in user from the host as
+props of their exposed `App`.
+
+```mermaid
+flowchart LR
+  E["Microsoft Entra ID"] -- "ID / access tokens" --> H["host<br/>MsalProvider · useAuth()"]
+  H -- "RemoteAppProps<br/>{ user, getAccessToken }" --> C["catalog/App"]
+  H -- "RemoteAppProps<br/>{ user, getAccessToken }" --> O["orders/App"]
+  C --> CP["pages: useAuth()"]
+  O --> OP["pages: useAuth()"]
+```
+
+**Contract.** [`@repo/auth`](packages/auth/src/index.ts) is a **types-only** package shared by the
+host and the remotes:
+
+```ts
+interface AuthUser { id: string; name: string; username: string; tenantId: string; roles: string[] }
+type GetAccessToken = (scopes: string[]) => Promise<string>;
+interface RemoteAppProps { user: AuthUser; getAccessToken: GetAccessToken }
+```
+
+It has no runtime code, so it is **not** part of Module Federation's `shared` config.
+
+**Host:**
+
+- [`auth/msal.ts`](apps/host/src/auth/msal.ts) configures MSAL with the authority
+  `https://login.microsoftonline.com/<tenant>` and the redirect URI `<host URL>/redirect.html`. It
+  initializes the instance before rendering and keeps the active account up to date.
+- [`auth/useAuth.ts`](apps/host/src/auth/useAuth.ts) returns `user` (mapped from the ID token
+  claims), `getAccessToken` (`acquireTokenSilent`, falling back to `acquireTokenRedirect`), `signIn`
+  and `signOut`. Both sign-in and sign-out use redirects.
+- [`App.tsx`](apps/host/src/App.tsx) renders the routes inside `AuthenticatedTemplate`, and a sign-in
+  page inside `UnauthenticatedTemplate`. The header shows a **Sign in** button or the user's menu.
+- [`RemoteRoute`](apps/host/src/components/RemoteRoute.tsx) passes `user` and `getAccessToken` to
+  every remote.
+
+**Remotes:** the exposed `App` puts its props into a remote-local `AuthContext`
+([`auth.ts`](apps/catalog/src/auth.ts)), so any page can call `useAuth()`. In standalone mode,
+`main.tsx` passes a placeholder user ([`standaloneAuth.ts`](apps/catalog/src/standaloneAuth.ts)), and
+`getAccessToken` rejects.
+
+```tsx
+// In a remote page
+const { user, getAccessToken } = useAuth();
+const token = await getAccessToken(["api://<api-client-id>/access_as_user"]);
+```
+
+**Redirect bridge (MSAL v5).** Microsoft Entra ID sends `Cross-Origin-Opener-Policy` headers, so MSAL v5
+returns the authentication response through a minimal **redirect bridge** page:
+[`apps/host/public/redirect.html`](apps/host/public/redirect.html). It lives in `public/` on purpose:
+Vite and the Module Federation plugin would otherwise inject the host bundle and the remotes into it.
+It loads `redirect-bridge.js`, the standalone bridge script shipped with `@azure/msal-browser`. The
+`msalRedirectBridge()` plugin in the host's `vite.config.ts` serves that script in dev and emits it
+in the build.
+
+**Configuration.**
+
+- [`apps/host/.env`](apps/host/.env) holds `VITE_MSAL_CLIENT_ID` and `VITE_MSAL_TENANT_ID`. These are
+  public identifiers, not secrets. Override them in `.env.local`.
+- The app registration (single tenant) must list these redirect URIs under
+  **Authentication → Single-page application**:
+  - `http://localhost:5000/redirect.html` (dev and `pnpm preview`)
+  - `https://<owner>.github.io/<repo>/redirect.html` (GitHub Pages)
+- Sign-in requests the `User.Read` scope (`loginRequest` in `msal.ts`).
+
 ### Typing remote modules
 
 `import("orders/App")` is not a real package. It is resolved **at runtime** by Module Federation, so
@@ -318,7 +398,8 @@ declares each exposed module:
 ```ts
 declare module "orders/App" {
   import type { ComponentType } from "react";
-  const App: ComponentType;
+  import type { RemoteAppProps } from "@repo/auth";
+  const App: ComponentType<RemoteAppProps>;
   export default App;
 }
 ```
@@ -388,10 +469,13 @@ federation({
 
 ### 3. Implement the app
 
-- `src/App.tsx`: the exposed component. Declare **relative** routes only. Keep the
+- `src/App.tsx`: the exposed component. It receives `RemoteAppProps` (`user`, `getAccessToken`)
+  and provides them through `AuthContext`. Declare **relative** routes only. Keep the
   `import "./app.css"` at the top, so that the remote's styles ship with it.
 - `src/main.tsx`: the standalone entry. Keep the `BrowserRouter` +
-  `<Route path="/*" element={<App />} />` wrapper and the `import "./standalone.css"`, and update the label.
+  `<Route path="/*" element={<App user={standaloneUser} getAccessToken={standaloneGetAccessToken} />} />`
+  wrapper and the `import "./standalone.css"`, and update the label.
+- Pages read the signed-in user with `useAuth()` from `src/auth.ts`.
 - Replace `src/data.ts` and `src/pages/*` with your own code. Style with Tailwind utility classes
   and the theme tokens, and use `@repo/ui` components for a consistent look.
 
@@ -419,7 +503,8 @@ remotes: {
 ```ts
 declare module "billing/App" {
   import type { ComponentType } from "react";
-  const App: ComponentType;
+  import type { RemoteAppProps } from "@repo/auth";
+  const App: ComponentType<RemoteAppProps>;
   export default App;
 }
 ```
@@ -483,6 +568,7 @@ static hosting service (Azure Static Web Apps, Azure Storage + Front Door, S3 + 
 | `HOST_BASE_URL` | host | Public path of the host (Vite `base`), **with** trailing slash, e.g. `/federation/` | `/` |
 | `VITE_CATALOG_URL` | host | URL of the catalog remote, **without** trailing slash | `http://localhost:5001` |
 | `VITE_ORDERS_URL` | host | URL of the orders remote, **without** trailing slash | `http://localhost:5002` |
+| `VITE_MSAL_CLIENT_ID`, `VITE_MSAL_TENANT_ID` | host | Microsoft Entra ID app registration | set in `apps/host/.env` |
 
 Every app derives its router `basename` from its Vite `base` (`import.meta.env.BASE_URL`), so apps
 work both at the domain root and under a sub-path.

@@ -8,6 +8,7 @@ See [README.md](../README.md) for the full architecture and the step-by-step gui
 - `apps/host`: shell app (port 5000). Owns the layout (`Header`, `Navigation`, `Menu`), top-level routing and host pages. Loads remotes at runtime.
 - `apps/catalog` (5001), `apps/orders` (5002): remote micro frontends. Each exposes `./App` and also runs standalone.
 - `packages/ui` (`@repo/ui`): shadcn/ui workspace (style `base-nova`, Base UI primitives, Lucide icons). Shared components, the `cn()` helper and the theme (`src/styles/theme.css`). Consumed **from source** (`exports` → `src/index.ts`), with no build step.
+- `packages/auth` (`@repo/auth`): types-only contract between host and remotes (`AuthUser`, `RemoteAppProps`).
 - `tsconfig.base.json`: shared compiler options. Every package's `tsconfig.json` extends it.
 
 ## Commands
@@ -49,6 +50,9 @@ For UI changes, also check the app both standalone and inside the host.
 
 ## Host
 
+- Authentication (MSAL, Microsoft Entra ID) lives **only** in the host (`src/auth/`). Remotes must never depend on `@azure/msal-*`.
+- Remotes receive the signed-in user as props: every exposed `App` takes `RemoteAppProps` (`user`, `getAccessToken`) from `@repo/auth`, a **types-only** package (keep it free of runtime code, or it must be added to `shared`). `RemoteRoute` passes these props; remotes expose them to their pages through their local `AuthContext` / `useAuth()` (`src/auth.ts`), and `main.tsx` passes a placeholder user in standalone mode.
+- `public/redirect.html` is the MSAL v5 redirect bridge. Keep it static in `public/` (never a Vite HTML entry, or Module Federation injects the host into it). Its URL (`<host URL>/redirect.html`) must be registered as a SPA redirect URI in Entra ID.
 - Load remotes with `lazy(() => import("<remote>/App"))` and render them **only** through `RemoteRoute` (`apps/host/src/components/RemoteRoute.tsx`), which provides `Suspense` + `ErrorBoundary`. Do not render a remote without it.
 - Mount remotes on wildcard routes: `<Route path="<name>/*" element={<RemoteRoute name="…" component={…} />} />`.
 - Navigation items live only in `apps/host/src/navigation.ts`, used by both `Navigation` and `Menu`.

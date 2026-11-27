@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { Navigation } from "./Navigation.tsx";
+import { UserMenu } from "./UserMenu.tsx";
 
 export function Header() {
   return (
@@ -8,6 +9,9 @@ export function Header() {
         Federation
       </Link>
       <Navigation />
+      <div className="ml-auto">
+        <UserMenu />
+      </div>
     </header>
   );
 }

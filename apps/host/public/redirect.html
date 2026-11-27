@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Signing in…</title>
+  </head>
+  <body>
+    <!--
+      MSAL v5 redirect bridge: this page is the redirectUri registered in Microsoft Entra ID. It hands
+      the authentication response back to the app, then returns to the page that started the sign-in.
+      Static on purpose (public/): it must not load React, the host bundle or Module Federation.
+      redirect-bridge.js is provided by the msalRedirectBridge() plugin in vite.config.ts.
+    -->
+    <p>Signing in…</p>
+    <script src="./redirect-bridge.js"></script>
+    <script>
+      msalRedirectBridge.broadcastResponseToMainFrame().catch(function (error) {
+        console.error("[MSAL] Error broadcasting the authentication response:", error);
+      });
+    </script>
+  </body>
+</html>
