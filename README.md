@@ -162,7 +162,7 @@ There are two levels of composition:
 | --- | --- | --- |
 | `apps/host` | Host / shell | Global layout (`Header`, `Navigation`, `Menu`), top-level routing, host-owned pages, loads remotes. Declares the remotes in `federation({ remotes })`. |
 | `apps/catalog`, `apps/orders` | Remotes | Own a business domain. Expose `./App` through `federation({ exposes })`. Also run **standalone** through their own `main.tsx`. |
-| `packages/ui` | Library | shadcn/ui components (`Button`, `Card`, `Badge`, `Spinner`), custom shared components (`ErrorBoundary`), the `cn()` class helper and the shared theme (`styles/theme.css`). Consumed **from source** (`exports` points to `src/index.ts`), so it has no build step. |
+| `packages/ui` | Library | shadcn/ui components (`Button`, `Card`, `Badge`, `Input`, `Table`, `Spinner`), custom shared components (`ErrorBoundary`, `DataTable`), the `cn()` class helper and the shared theme (`styles/theme.css`). Consumed **from source** (`exports` points to `src/index.ts`), so it has no build step. |
 
 Each remote has **two entry points**:
 
@@ -293,7 +293,23 @@ Generated files can be edited freely: they are your code. Custom (non-shadcn) co
 `ErrorBoundary`, also live in `src/components` and are exported the same way.
 
 Current components: `Button`, `Card` (`CardHeader`, `CardTitle`, `CardDescription`, `CardAction`,
-`CardContent`, `CardFooter`), `Badge`, `Spinner` (shadcn) and `ErrorBoundary` (custom).
+`CardContent`, `CardFooter`), `Badge`, `Input`, `Table` (`TableHeader`, `TableBody`, `TableRow`,
+`TableHead`, `TableCell`…), `Spinner` (shadcn), `ErrorBoundary` (custom) and `DataTable` (custom,
+built on `Table` and [TanStack Table](https://tanstack.com/table) v9 following shadcn's data-table
+guide).
+
+`DataTable` provides sorting, a global search (`filterPlaceholder`) and pagination. Define columns
+with the `DataTableColumnDef<TData>` type and use `DataTableColumnHeader` for sortable headers, as in
+`apps/catalog/src/pages/ProductList.tsx`. `@tanstack/react-table` is a dependency of `@repo/ui` only:
+apps never import it directly.
+
+Rows are plain by default. Expansion is opt-in, and `DataTable` then adds a chevron column:
+
+- `renderSubComponent={(row) => …}`: detail panel rendered under an expanded row.
+  `getRowCanExpand` restricts which rows can expand.
+- `getSubRows={(row) => row.children}`: tree data, where sub-rows have the same type as their parent
+  (catalog example: product `variants`). Nested rows are indented, the header gets an "expand all"
+  button, and searching keeps the parents of matching sub-rows and expands them.
 
 ### Routing
 

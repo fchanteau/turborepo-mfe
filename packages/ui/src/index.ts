@@ -26,7 +26,26 @@ export {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "#components/dropdown-menu";
+export { Input } from "#components/input";
 export { Spinner } from "#components/spinner";
+export {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "#components/table";
+
+export { DataTable, DataTableColumnHeader } from "#components/data-table";
+export type {
+  DataTableColumnDef,
+  DataTableColumnHeaderProps,
+  DataTableFeatures,
+  DataTableProps,
+} from "#components/data-table";
 
 export { ErrorBoundary } from "#components/error-boundary";
 export type { ErrorBoundaryProps } from "#components/error-boundary";

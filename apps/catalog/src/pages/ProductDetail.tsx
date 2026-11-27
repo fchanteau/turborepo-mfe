@@ -1,11 +1,11 @@
 import { Badge, Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@repo/ui";
 import { useNavigate, useParams } from "react-router";
-import { products } from "../data.ts";
+import { findProduct } from "../data.ts";
 
 export function ProductDetail() {
   const { productId } = useParams();
   const navigate = useNavigate();
-  const product = products.find((p) => p.id === productId);
+  const product = findProduct(productId);
   const back = () => navigate("..", { relative: "path" });
 
   if (!product) {
