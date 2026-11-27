@@ -20,23 +20,27 @@
     "src": "../../node_modules/.pnpm/@fontsource-variable+geist@5.3.0/node_modules/@fontsource-variable/geist/files/geist-vietnamese-wght-normal.woff2"
   },
   "../../packages/ui/src/index.ts": {
-    "file": "assets/src-Z0ARmeNb.js",
+    "file": "assets/src-BJSJ_rVO.js",
     "name": "src",
     "src": "../../packages/ui/src/index.ts",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-CW0mqCbX.js",
-      "__virtual_mf___mfe_internal__orders__mf_owner__5747281138432__loadShare__shared-CTOJe0rg.js"
+      "__virtual_mf___mfe_internal__orders__mf_owner__5747281138432__loadShare__shared-D7JEvtqt.js"
     ]
   },
-  "_App-BEVD_qaZ.js": {
-    "file": "assets/App-BEVD_qaZ.js",
+  "_App-5RsS2Dh2.css": {
+    "file": "assets/App-5RsS2Dh2.css",
+    "src": "_App-5RsS2Dh2.css"
+  },
+  "_App-DrEBmAfl.js": {
+    "file": "assets/App-DrEBmAfl.js",
     "name": "App",
     "imports": [
-      "__virtual_mf___mfe_internal__orders__mf_owner__5747281138432__loadShare__shared-CTOJe0rg.js"
+      "__virtual_mf___mfe_internal__orders__mf_owner__5747281138432__loadShare__shared-D7JEvtqt.js"
     ],
     "css": [
-      "assets/App-DddctQZg.css"
+      "assets/App-5RsS2Dh2.css"
     ],
     "assets": [
       "assets/geist-cyrillic-ext-wght-normal-DjL33-gN.woff2",
@@ -46,12 +50,8 @@
       "assets/geist-latin-wght-normal-BgDaEnEv.woff2"
     ]
   },
-  "_App-DddctQZg.css": {
-    "file": "assets/App-DddctQZg.css",
-    "src": "_App-DddctQZg.css"
-  },
-  "__virtual_mf___mfe_internal__orders__mf_owner__5747281138432__loadShare__shared-CTOJe0rg.js": {
-    "file": "assets/_virtual_mf___mfe_internal__orders__mf_owner__5747281138432__loadShare__shared-CTOJe0rg.js",
+  "__virtual_mf___mfe_internal__orders__mf_owner__5747281138432__loadShare__shared-D7JEvtqt.js": {
+    "file": "assets/_virtual_mf___mfe_internal__orders__mf_owner__5747281138432__loadShare__shared-D7JEvtqt.js",
     "name": "_virtual_mf___mfe_internal__orders__mf_owner__5747281138432__loadShare__shared",
     "imports": [
       "_rolldown-runtime-CW0mqCbX.js",
@@ -111,25 +111,25 @@
     ]
   },
   "index.html": {
-    "file": "assets/index-Cl9sjoP4.js",
+    "file": "assets/index-BtdEcW24.js",
     "name": "index",
     "src": "index.html",
     "isEntry": true,
     "imports": [
-      "__virtual_mf___mfe_internal__orders__mf_owner__5747281138432__loadShare__shared-CTOJe0rg.js",
-      "_App-BEVD_qaZ.js"
+      "__virtual_mf___mfe_internal__orders__mf_owner__5747281138432__loadShare__shared-D7JEvtqt.js",
+      "_App-DrEBmAfl.js"
     ],
     "css": [
       "assets/index-daB9WYSL.css"
     ]
   },
   "src/App.tsx": {
-    "file": "assets/App-CIMTBMN8.js",
+    "file": "assets/App-CXPfFaaR.js",
     "name": "App",
     "src": "src/App.tsx",
     "isEntry": true,
     "imports": [
-      "_App-BEVD_qaZ.js"
+      "_App-DrEBmAfl.js"
     ]
   },
   "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__orders__remoteEntry_js": {
@@ -147,7 +147,7 @@
     ]
   },
   "virtual:mf-localSharedImportMap:__mfe_internal__orders__mf_owner__1": {
-    "file": "assets/_virtual_mf-localSharedImportMap___mfe_internal__orders__mf_owner__1-DfHgdTIg.js",
+    "file": "assets/_virtual_mf-localSharedImportMap___mfe_internal__orders__mf_owner__1-DGWnb8QP.js",
     "name": "_virtual_mf-localSharedImportMap___mfe_internal__orders__mf_owner__1",
     "src": "virtual:mf-localSharedImportMap:__mfe_internal__orders__mf_owner__1",
     "isDynamicEntry": true,
@@ -165,7 +165,7 @@
     ]
   },
   "virtual:mf:__mfe_internal__orders__mf_owner__1__H_A_I__hostAutoInit__H_A_I__.js": {
-    "file": "assets/hostInit-DqZ540jA.js",
+    "file": "assets/hostInit-DtnvQuGT.js",
     "name": "hostInit",
     "src": "virtual:mf:__mfe_internal__orders__mf_owner__1__H_A_I__hostAutoInit__H_A_I__.js",
     "imports": [
@@ -178,7 +178,7 @@
     ]
   },
   "virtual:mf:__mfe_internal__orders__mf_owner__1__P_S__pendingShares__P_S__.js": {
-    "file": "assets/pendingShares-KDxY3mX3.js",
+    "file": "assets/pendingShares-Bhs68JcA.js",
     "name": "pendingShares",
     "src": "virtual:mf:__mfe_internal__orders__mf_owner__1__P_S__pendingShares__P_S__.js",
     "imports": [
@@ -229,13 +229,13 @@
     ]
   },
   "virtual:mf:__mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_2_router__prebuild__.js": {
-    "file": "assets/_virtual_mf___mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_2_router__prebuild__-JpC5jn78.js",
+    "file": "assets/_virtual_mf___mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_2_router__prebuild__-CsPoqA-p.js",
     "name": "_virtual_mf___mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_2_router__prebuild__",
     "src": "virtual:mf:__mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_2_router__prebuild__.js",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-CW0mqCbX.js",
-      "__virtual_mf___mfe_internal__orders__mf_owner__5747281138432__loadShare__shared-CTOJe0rg.js"
+      "__virtual_mf___mfe_internal__orders__mf_owner__5747281138432__loadShare__shared-D7JEvtqt.js"
     ]
   }
 }
