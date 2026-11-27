@@ -20,23 +20,27 @@
     "src": "../../node_modules/.pnpm/@fontsource-variable+geist@5.3.0/node_modules/@fontsource-variable/geist/files/geist-vietnamese-wght-normal.woff2"
   },
   "../../packages/ui/src/index.ts": {
-    "file": "assets/src-IErYSwGT.js",
+    "file": "assets/src-61ij1kvI.js",
     "name": "src",
     "src": "../../packages/ui/src/index.ts",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-CW0mqCbX.js",
-      "__virtual_mf___mfe_internal__catalog__mf_owner__274952463741941__loadShare__shared-B8YySW91.js"
+      "__virtual_mf___mfe_internal__catalog__mf_owner__274952463741941__loadShare__shared-O0yUYibS.js"
     ]
   },
-  "_App-DR5tfp9F.js": {
-    "file": "assets/App-DR5tfp9F.js",
+  "_App-BJaGxTFN.css": {
+    "file": "assets/App-BJaGxTFN.css",
+    "src": "_App-BJaGxTFN.css"
+  },
+  "_App-CIrYcboi.js": {
+    "file": "assets/App-CIrYcboi.js",
     "name": "App",
     "imports": [
-      "__virtual_mf___mfe_internal__catalog__mf_owner__274952463741941__loadShare__shared-B8YySW91.js"
+      "__virtual_mf___mfe_internal__catalog__mf_owner__274952463741941__loadShare__shared-O0yUYibS.js"
     ],
     "css": [
-      "assets/App-cGlzVq61.css"
+      "assets/App-BJaGxTFN.css"
     ],
     "assets": [
       "assets/geist-cyrillic-ext-wght-normal-DjL33-gN.woff2",
@@ -46,12 +50,8 @@
       "assets/geist-latin-wght-normal-BgDaEnEv.woff2"
     ]
   },
-  "_App-cGlzVq61.css": {
-    "file": "assets/App-cGlzVq61.css",
-    "src": "_App-cGlzVq61.css"
-  },
-  "__virtual_mf___mfe_internal__catalog__mf_owner__274952463741941__loadShare__shared-B8YySW91.js": {
-    "file": "assets/_virtual_mf___mfe_internal__catalog__mf_owner__274952463741941__loadShare__shared-B8YySW91.js",
+  "__virtual_mf___mfe_internal__catalog__mf_owner__274952463741941__loadShare__shared-O0yUYibS.js": {
+    "file": "assets/_virtual_mf___mfe_internal__catalog__mf_owner__274952463741941__loadShare__shared-O0yUYibS.js",
     "name": "_virtual_mf___mfe_internal__catalog__mf_owner__274952463741941__loadShare__shared",
     "imports": [
       "_rolldown-runtime-CW0mqCbX.js",
@@ -111,25 +111,25 @@
     ]
   },
   "index.html": {
-    "file": "assets/index-BZFBRnVq.js",
+    "file": "assets/index-B3zyHOfJ.js",
     "name": "index",
     "src": "index.html",
     "isEntry": true,
     "imports": [
-      "__virtual_mf___mfe_internal__catalog__mf_owner__274952463741941__loadShare__shared-B8YySW91.js",
-      "_App-DR5tfp9F.js"
+      "__virtual_mf___mfe_internal__catalog__mf_owner__274952463741941__loadShare__shared-O0yUYibS.js",
+      "_App-CIrYcboi.js"
     ],
     "css": [
       "assets/index-daB9WYSL.css"
     ]
   },
   "src/App.tsx": {
-    "file": "assets/App-CuFggfyF.js",
+    "file": "assets/App-CaPAcnZT.js",
     "name": "App",
     "src": "src/App.tsx",
     "isEntry": true,
     "imports": [
-      "_App-DR5tfp9F.js"
+      "_App-CIrYcboi.js"
     ]
   },
   "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__catalog__remoteEntry_js": {
@@ -147,7 +147,7 @@
     ]
   },
   "virtual:mf-localSharedImportMap:__mfe_internal__catalog__mf_owner__1": {
-    "file": "assets/_virtual_mf-localSharedImportMap___mfe_internal__catalog__mf_owner__1-LtEMIFtr.js",
+    "file": "assets/_virtual_mf-localSharedImportMap___mfe_internal__catalog__mf_owner__1-gWozvFlj.js",
     "name": "_virtual_mf-localSharedImportMap___mfe_internal__catalog__mf_owner__1",
     "src": "virtual:mf-localSharedImportMap:__mfe_internal__catalog__mf_owner__1",
     "isDynamicEntry": true,
@@ -165,7 +165,7 @@
     ]
   },
   "virtual:mf:__mfe_internal__catalog__mf_owner__1__H_A_I__hostAutoInit__H_A_I__.js": {
-    "file": "assets/hostInit-BVeStZCv.js",
+    "file": "assets/hostInit-DwdC9JEz.js",
     "name": "hostInit",
     "src": "virtual:mf:__mfe_internal__catalog__mf_owner__1__H_A_I__hostAutoInit__H_A_I__.js",
     "imports": [
@@ -178,7 +178,7 @@
     ]
   },
   "virtual:mf:__mfe_internal__catalog__mf_owner__1__P_S__pendingShares__P_S__.js": {
-    "file": "assets/pendingShares-BrOQ939x.js",
+    "file": "assets/pendingShares-C5DGjG1S.js",
     "name": "pendingShares",
     "src": "virtual:mf:__mfe_internal__catalog__mf_owner__1__P_S__pendingShares__P_S__.js",
     "imports": [
@@ -229,13 +229,13 @@
     ]
   },
   "virtual:mf:__mfe_internal__catalog__mf_owner__274952463741941__prebuild__react_mf_2_router__prebuild__.js": {
-    "file": "assets/_virtual_mf___mfe_internal__catalog__mf_owner__274952463741941__prebuild__react_mf_2_router__prebuild__-B9VV3xJo.js",
+    "file": "assets/_virtual_mf___mfe_internal__catalog__mf_owner__274952463741941__prebuild__react_mf_2_router__prebuild__-CwfbQoTI.js",
     "name": "_virtual_mf___mfe_internal__catalog__mf_owner__274952463741941__prebuild__react_mf_2_router__prebuild__",
     "src": "virtual:mf:__mfe_internal__catalog__mf_owner__274952463741941__prebuild__react_mf_2_router__prebuild__.js",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-CW0mqCbX.js",
-      "__virtual_mf___mfe_internal__catalog__mf_owner__274952463741941__loadShare__shared-B8YySW91.js"
+      "__virtual_mf___mfe_internal__catalog__mf_owner__274952463741941__loadShare__shared-O0yUYibS.js"
     ]
   }
 }
