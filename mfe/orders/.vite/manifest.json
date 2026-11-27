@@ -1,0 +1,236 @@
+{
+  "../../node_modules/.pnpm/@fontsource-variable+geist@5.3.0/node_modules/@fontsource-variable/geist/files/geist-cyrillic-ext-wght-normal.woff2": {
+    "file": "assets/geist-cyrillic-ext-wght-normal-DjL33-gN.woff2",
+    "src": "../../node_modules/.pnpm/@fontsource-variable+geist@5.3.0/node_modules/@fontsource-variable/geist/files/geist-cyrillic-ext-wght-normal.woff2"
+  },
+  "../../node_modules/.pnpm/@fontsource-variable+geist@5.3.0/node_modules/@fontsource-variable/geist/files/geist-cyrillic-wght-normal.woff2": {
+    "file": "assets/geist-cyrillic-wght-normal-BEAKL7Jp.woff2",
+    "src": "../../node_modules/.pnpm/@fontsource-variable+geist@5.3.0/node_modules/@fontsource-variable/geist/files/geist-cyrillic-wght-normal.woff2"
+  },
+  "../../node_modules/.pnpm/@fontsource-variable+geist@5.3.0/node_modules/@fontsource-variable/geist/files/geist-latin-ext-wght-normal.woff2": {
+    "file": "assets/geist-latin-ext-wght-normal-DC-KSUi6.woff2",
+    "src": "../../node_modules/.pnpm/@fontsource-variable+geist@5.3.0/node_modules/@fontsource-variable/geist/files/geist-latin-ext-wght-normal.woff2"
+  },
+  "../../node_modules/.pnpm/@fontsource-variable+geist@5.3.0/node_modules/@fontsource-variable/geist/files/geist-latin-wght-normal.woff2": {
+    "file": "assets/geist-latin-wght-normal-BgDaEnEv.woff2",
+    "src": "../../node_modules/.pnpm/@fontsource-variable+geist@5.3.0/node_modules/@fontsource-variable/geist/files/geist-latin-wght-normal.woff2"
+  },
+  "../../node_modules/.pnpm/@fontsource-variable+geist@5.3.0/node_modules/@fontsource-variable/geist/files/geist-vietnamese-wght-normal.woff2": {
+    "file": "assets/geist-vietnamese-wght-normal-6IgcOCM7.woff2",
+    "src": "../../node_modules/.pnpm/@fontsource-variable+geist@5.3.0/node_modules/@fontsource-variable/geist/files/geist-vietnamese-wght-normal.woff2"
+  },
+  "../../packages/ui/src/index.ts": {
+    "file": "assets/src-DAm-ToH0.js",
+    "name": "src",
+    "src": "../../packages/ui/src/index.ts",
+    "isDynamicEntry": true,
+    "imports": [
+      "__virtual_mf___mfe_internal__orders__mf_owner__5747281138432__loadShare__shared-C-FAQU4E.js"
+    ]
+  },
+  "_App-DoH3EJjV.css": {
+    "file": "assets/App-DoH3EJjV.css",
+    "src": "_App-DoH3EJjV.css"
+  },
+  "_App-XHt7Ma6q.js": {
+    "file": "assets/App-XHt7Ma6q.js",
+    "name": "App",
+    "imports": [
+      "__virtual_mf___mfe_internal__orders__mf_owner__5747281138432__loadShare__shared-C-FAQU4E.js"
+    ],
+    "css": [
+      "assets/App-DoH3EJjV.css"
+    ],
+    "assets": [
+      "assets/geist-cyrillic-ext-wght-normal-DjL33-gN.woff2",
+      "assets/geist-cyrillic-wght-normal-BEAKL7Jp.woff2",
+      "assets/geist-vietnamese-wght-normal-6IgcOCM7.woff2",
+      "assets/geist-latin-ext-wght-normal-DC-KSUi6.woff2",
+      "assets/geist-latin-wght-normal-BgDaEnEv.woff2"
+    ]
+  },
+  "__virtual_mf___mfe_internal__orders__mf_owner__5747281138432__loadShare__shared-C-FAQU4E.js": {
+    "file": "assets/_virtual_mf___mfe_internal__orders__mf_owner__5747281138432__loadShare__shared-C-FAQU4E.js",
+    "name": "_virtual_mf___mfe_internal__orders__mf_owner__5747281138432__loadShare__shared",
+    "imports": [
+      "_rolldown-runtime-QQ38H6s1.js",
+      "_vite-preload-helper-CXk53fc4.js"
+    ],
+    "dynamicImports": [
+      "virtual:mf:__mfe_internal__orders__mf_owner__5747281138432__prebuild__react__prebuild__.js",
+      "virtual:mf:__mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_2_dom_mf_1_client__prebuild__.js",
+      "virtual:mf:__mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_2_router__prebuild__.js",
+      "../../packages/ui/src/index.ts",
+      "virtual:mf:__mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_1_jsx_mf_2_runtime__prebuild__.js"
+    ]
+  },
+  "_dist-ieCeHgyX.js": {
+    "file": "assets/dist-ieCeHgyX.js",
+    "name": "dist",
+    "imports": [
+      "_utils-DsRXdlX4.js"
+    ]
+  },
+  "_helpers-Bc17IkSi.js": {
+    "file": "assets/helpers-Bc17IkSi.js",
+    "name": "helpers",
+    "imports": [
+      "_utils-DsRXdlX4.js"
+    ]
+  },
+  "_react-T6cVTkl6.js": {
+    "file": "assets/react-T6cVTkl6.js",
+    "name": "react",
+    "imports": [
+      "_rolldown-runtime-QQ38H6s1.js"
+    ]
+  },
+  "_react-dom-BRW14Ibl.js": {
+    "file": "assets/react-dom-BRW14Ibl.js",
+    "name": "react-dom",
+    "imports": [
+      "_rolldown-runtime-QQ38H6s1.js",
+      "_react-T6cVTkl6.js"
+    ]
+  },
+  "_rolldown-runtime-QQ38H6s1.js": {
+    "file": "assets/rolldown-runtime-QQ38H6s1.js",
+    "name": "rolldown-runtime"
+  },
+  "_utils-DsRXdlX4.js": {
+    "file": "assets/utils-DsRXdlX4.js",
+    "name": "utils"
+  },
+  "_vite-preload-helper-CXk53fc4.js": {
+    "file": "assets/vite-preload-helper-CXk53fc4.js",
+    "name": "vite-preload-helper"
+  },
+  "index.html": {
+    "file": "assets/index-DP57WMyz.js",
+    "name": "index",
+    "src": "index.html",
+    "isEntry": true,
+    "imports": [
+      "__virtual_mf___mfe_internal__orders__mf_owner__5747281138432__loadShare__shared-C-FAQU4E.js",
+      "_App-XHt7Ma6q.js"
+    ],
+    "css": [
+      "assets/index-daB9WYSL.css"
+    ]
+  },
+  "src/App.tsx": {
+    "file": "assets/App-aZdvt7EV.js",
+    "name": "App",
+    "src": "src/App.tsx",
+    "isEntry": true,
+    "imports": [
+      "_App-XHt7Ma6q.js"
+    ]
+  },
+  "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__orders__remoteEntry_js": {
+    "file": "remoteEntry.js",
+    "name": "remoteEntry",
+    "src": "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__orders__remoteEntry_js",
+    "imports": [
+      "_dist-ieCeHgyX.js",
+      "_helpers-Bc17IkSi.js",
+      "_vite-preload-helper-CXk53fc4.js"
+    ],
+    "dynamicImports": [
+      "src/App.tsx",
+      "virtual:mf-localSharedImportMap:__mfe_internal__orders__mf_owner__1"
+    ]
+  },
+  "virtual:mf-localSharedImportMap:__mfe_internal__orders__mf_owner__1": {
+    "file": "assets/_virtual_mf-localSharedImportMap___mfe_internal__orders__mf_owner__1-_xsqymRW.js",
+    "name": "_virtual_mf-localSharedImportMap___mfe_internal__orders__mf_owner__1",
+    "src": "virtual:mf-localSharedImportMap:__mfe_internal__orders__mf_owner__1",
+    "isDynamicEntry": true,
+    "imports": [
+      "_dist-ieCeHgyX.js",
+      "_vite-preload-helper-CXk53fc4.js"
+    ],
+    "dynamicImports": [
+      "virtual:mf:__mfe_internal__orders__mf_owner__5747281138432__prebuild__react__prebuild__.js",
+      "virtual:mf:__mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_1_jsx_mf_2_runtime__prebuild__.js",
+      "virtual:mf:__mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_2_dom__prebuild__.js",
+      "virtual:mf:__mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_2_dom_mf_1_client__prebuild__.js",
+      "../../packages/ui/src/index.ts",
+      "virtual:mf:__mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_2_router__prebuild__.js"
+    ]
+  },
+  "virtual:mf:__mfe_internal__orders__mf_owner__1__H_A_I__hostAutoInit__H_A_I__.js": {
+    "file": "assets/hostInit-Cw6U_KCe.js",
+    "name": "hostInit",
+    "src": "virtual:mf:__mfe_internal__orders__mf_owner__1__H_A_I__hostAutoInit__H_A_I__.js",
+    "imports": [
+      "_helpers-Bc17IkSi.js",
+      "_vite-preload-helper-CXk53fc4.js"
+    ],
+    "dynamicImports": [
+      "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__orders__remoteEntry_js",
+      "virtual:mf-localSharedImportMap:__mfe_internal__orders__mf_owner__1"
+    ]
+  },
+  "virtual:mf:__mfe_internal__orders__mf_owner__1__P_S__pendingShares__P_S__.js": {
+    "file": "assets/pendingShares-C4mpzmeG.js",
+    "name": "pendingShares",
+    "src": "virtual:mf:__mfe_internal__orders__mf_owner__1__P_S__pendingShares__P_S__.js",
+    "imports": [
+      "_vite-preload-helper-CXk53fc4.js"
+    ],
+    "dynamicImports": [
+      "virtual:mf-localSharedImportMap:__mfe_internal__orders__mf_owner__1"
+    ]
+  },
+  "virtual:mf:__mfe_internal__orders__mf_owner__5747281138432__prebuild__react__prebuild__.js": {
+    "file": "assets/_virtual_mf___mfe_internal__orders__mf_owner__5747281138432__prebuild__react__prebuild__-BHRepoef.js",
+    "name": "_virtual_mf___mfe_internal__orders__mf_owner__5747281138432__prebuild__react__prebuild__",
+    "src": "virtual:mf:__mfe_internal__orders__mf_owner__5747281138432__prebuild__react__prebuild__.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-QQ38H6s1.js",
+      "_react-T6cVTkl6.js"
+    ]
+  },
+  "virtual:mf:__mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_1_jsx_mf_2_runtime__prebuild__.js": {
+    "file": "assets/_virtual_mf___mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_1_jsx_mf_2_runtime__prebuild__-vkVt5Lpt.js",
+    "name": "_virtual_mf___mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_1_jsx_mf_2_runtime__prebuild__",
+    "src": "virtual:mf:__mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_1_jsx_mf_2_runtime__prebuild__.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-QQ38H6s1.js"
+    ]
+  },
+  "virtual:mf:__mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_2_dom__prebuild__.js": {
+    "file": "assets/_virtual_mf___mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_2_dom__prebuild__-BA-eYO7v.js",
+    "name": "_virtual_mf___mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_2_dom__prebuild__",
+    "src": "virtual:mf:__mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_2_dom__prebuild__.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-QQ38H6s1.js",
+      "_react-dom-BRW14Ibl.js"
+    ]
+  },
+  "virtual:mf:__mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_2_dom_mf_1_client__prebuild__.js": {
+    "file": "assets/_virtual_mf___mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_2_dom_mf_1_client__prebuild__-7ye1oRs1.js",
+    "name": "_virtual_mf___mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_2_dom_mf_1_client__prebuild__",
+    "src": "virtual:mf:__mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_2_dom_mf_1_client__prebuild__.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-QQ38H6s1.js",
+      "_react-T6cVTkl6.js",
+      "_react-dom-BRW14Ibl.js"
+    ]
+  },
+  "virtual:mf:__mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_2_router__prebuild__.js": {
+    "file": "assets/_virtual_mf___mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_2_router__prebuild__-C8UYxcYx.js",
+    "name": "_virtual_mf___mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_2_router__prebuild__",
+    "src": "virtual:mf:__mfe_internal__orders__mf_owner__5747281138432__prebuild__react_mf_2_router__prebuild__.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-QQ38H6s1.js",
+      "__virtual_mf___mfe_internal__orders__mf_owner__5747281138432__loadShare__shared-C-FAQU4E.js"
+    ]
+  }
+}
