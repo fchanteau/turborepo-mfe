@@ -43,6 +43,7 @@ For UI changes, also check the app both standalone and inside the host.
   - `src/App.tsx`: the exposed module. Routes and pages only, **no router**. Imports `./app.css`.
   - `src/main.tsx`: standalone mode only. Imports `./standalone.css` and wraps `App` in `BrowserRouter` + `<Route path="/*" />`.
 - Routes inside a remote must be **relative** (`index`, `":id"`). Navigate relatively (`navigate(id)`, `navigate("..", { relative: "path" })`). Never hard-code the host mount path (e.g. `/orders/...`).
+- Every `BrowserRouter` uses `basename` derived from `import.meta.env.BASE_URL`, so apps work under a sub-path (GitHub Pages). Never hard-code the deployment path or use raw `<a href="/...">` for internal links.
 - Remotes must not import from the host or from other remotes. Share code through `packages/*`.
 - Use `react-router` (v7), not `react-router-dom`.
 
@@ -61,8 +62,9 @@ Follow the README section "Creating a new micro frontend". Summary of the files 
 2. Update `package.json` `name`, `vite.config.ts` (`PORT`, federation `name`) and the `index.html` title.
 3. In the host, update `vite.config.ts` (`remotes`), `src/remotes.d.ts`, `src/App.tsx` (route) and `src/navigation.ts`.
 4. Add `VITE_<NAME>_URL` to `turbo.json` and `apps/host/.env.example`.
-5. Update the README (structure, ports, env var tables).
-6. Run `pnpm install`, `pnpm typecheck` and `pnpm build`.
+5. GitHub Pages: add `.github/workflows/deploy-<name>.yml` (copy of `deploy-orders.yml`, `target: mfe/<name>`), a job in `deploy-all.yml` before `host`, and `VITE_<NAME>_URL` in the "Compute public URLs" step of `_deploy-app.yml`.
+6. Update the README (structure, ports, env var tables).
+7. Run `pnpm install`, `pnpm typecheck` and `pnpm build`.
 
 ## Shared UI library (`@repo/ui`, shadcn/ui)
 

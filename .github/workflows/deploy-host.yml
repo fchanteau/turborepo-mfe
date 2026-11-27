@@ -1,0 +1,22 @@
+name: Deploy host
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - apps/host/**
+      - packages/**
+      - pnpm-lock.yaml
+      - turbo.json
+      - .github/workflows/deploy-host.yml
+      - .github/workflows/_deploy-app.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/_deploy-app.yml
+    with:
+      app: host

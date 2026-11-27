@@ -1,0 +1,23 @@
+name: Deploy catalog
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - apps/catalog/**
+      - packages/**
+      - pnpm-lock.yaml
+      - turbo.json
+      - .github/workflows/deploy-catalog.yml
+      - .github/workflows/_deploy-app.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/_deploy-app.yml
+    with:
+      app: catalog
+      target: mfe/catalog

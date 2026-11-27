@@ -1,0 +1,88 @@
+# Reusable workflow: builds one app and publishes it to its own folder of the gh-pages branch.
+# Files of the other apps are kept, so each micro frontend is deployed independently.
+#
+# Site layout (https://<owner>.github.io/<repo>/):
+#   /              host  (+ 404.html = SPA fallback, .nojekyll)
+#   /mfe/catalog/  catalog remote
+#   /mfe/orders/   orders remote
+name: Deploy app (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      app:
+        description: Workspace package name (pnpm/turbo filter), e.g. "catalog".
+        required: true
+        type: string
+      target:
+        description: Folder of the site where the app is published ("" for the host, "mfe/<app>" for remotes).
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    name: Build and publish ${{ inputs.app }}
+    runs-on: ubuntu-latest
+    # Serialize pushes to gh-pages across all deploy workflows.
+    concurrency:
+      group: gh-pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4 # version read from package.json "packageManager"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Compute public URLs
+        env:
+          # Set the PAGES_BASE_URL repository variable to override (custom domain, user site…).
+          PAGES_BASE_URL: ${{ vars.PAGES_BASE_URL || format('https://{0}.github.io/{1}/', github.repository_owner, github.event.repository.name) }}
+          TARGET: ${{ inputs.target }}
+        run: |
+          site="${PAGES_BASE_URL%/}/"
+          echo "SITE_URL=$site" >> "$GITHUB_ENV"
+          echo "HOST_BASE_URL=/$(echo "$site" | cut -d/ -f4-)" >> "$GITHUB_ENV"
+          echo "REMOTE_BASE_URL=${site}${TARGET:+$TARGET/}" >> "$GITHUB_ENV"
+          echo "VITE_CATALOG_URL=${site}mfe/catalog" >> "$GITHUB_ENV"
+          echo "VITE_ORDERS_URL=${site}mfe/orders" >> "$GITHUB_ENV"
+
+      - name: Typecheck and build
+        run: pnpm turbo run typecheck build --filter=${{ inputs.app }}
+
+      - name: Stage files
+        env:
+          APP: ${{ inputs.app }}
+          TARGET: ${{ inputs.target }}
+        run: |
+          dest="_site/${TARGET}"
+          mkdir -p "$dest"
+          cp -r "apps/$APP/dist/." "$dest"
+          # Federation chunks start with "_", which Jekyll would drop.
+          touch _site/.nojekyll
+          # GitHub Pages has no rewrites: serve the host for any unknown path (client-side routing).
+          if [ -z "$TARGET" ]; then cp "$dest/index.html" _site/404.html; fi
+
+      - name: Publish to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: _site
+          keep_files: true
+          commit_message: "deploy(${{ inputs.app }})"
+
+      - name: Summary
+        env:
+          APP: ${{ inputs.app }}
+          TARGET: ${{ inputs.target }}
+        run: echo "Deployed **$APP** to ${SITE_URL}${TARGET:+$TARGET/}" >> "$GITHUB_STEP_SUMMARY"

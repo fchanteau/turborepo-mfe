@@ -1,0 +1,23 @@
+name: Deploy orders
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - apps/orders/**
+      - packages/**
+      - pnpm-lock.yaml
+      - turbo.json
+      - .github/workflows/deploy-orders.yml
+      - .github/workflows/_deploy-app.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/_deploy-app.yml
+    with:
+      app: orders
+      target: mfe/orders

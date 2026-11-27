@@ -464,6 +464,11 @@ Checklist:
 Create a dedicated CI pipeline for the new app (see [Deployment](#deployment)), and rebuild the host
 **once** with `VITE_BILLING_URL` pointing to the production URL.
 
+For GitHub Pages: copy `.github/workflows/deploy-orders.yml` to `deploy-billing.yml` and change the
+name, the paths filter, `app: billing` and `target: mfe/billing`. Add a `billing` job to
+`deploy-all.yml`, before `host`. In `_deploy-app.yml`, add
+`echo "VITE_BILLING_URL=${site}mfe/billing" >> "$GITHUB_ENV"` to the *Compute public URLs* step.
+
 ## Deployment
 
 Each app builds to **static files** (`apps/<app>/dist`) and is deployed **independently** to any
@@ -475,8 +480,12 @@ static hosting service (Azure Static Web Apps, Azure Storage + Front Door, S3 + 
 | Variable | App | Description | Default |
 | --- | --- | --- | --- |
 | `REMOTE_BASE_URL` | each remote | Public URL of the remote, **with** trailing slash. Used as Vite `base` so that asset URLs are absolute and resolve from the host origin. | `http://localhost:<port>/` |
+| `HOST_BASE_URL` | host | Public path of the host (Vite `base`), **with** trailing slash, e.g. `/federation/` | `/` |
 | `VITE_CATALOG_URL` | host | URL of the catalog remote, **without** trailing slash | `http://localhost:5001` |
 | `VITE_ORDERS_URL` | host | URL of the orders remote, **without** trailing slash | `http://localhost:5002` |
+
+Every app derives its router `basename` from its Vite `base` (`import.meta.env.BASE_URL`), so apps
+work both at the domain root and under a sub-path.
 
 ```sh
 REMOTE_BASE_URL=https://orders.example.com/ pnpm turbo run build --filter=orders
@@ -510,6 +519,62 @@ Use one pipeline per app, triggered only when the app or one of its dependencies
 
 A remote redeployed at the same URL goes live in the host immediately. Rolling back means
 redeploying the previous `dist`.
+
+### GitHub Pages
+
+GitHub Actions workflows in [`.github/workflows`](.github/workflows) publish every app to GitHub
+Pages, **independently**, on a single site:
+
+| Path | App |
+| --- | --- |
+| `https://<owner>.github.io/<repo>/` | host (+ `404.html` SPA fallback) |
+| `https://<owner>.github.io/<repo>/mfe/catalog/` | catalog (also usable standalone) |
+| `https://<owner>.github.io/<repo>/mfe/orders/` | orders (also usable standalone) |
+
+All apps share one origin, so no CORS is needed.
+
+| Workflow | Trigger | Deploys |
+| --- | --- | --- |
+| `deploy-host.yml` | push to `master` touching `apps/host/**`, `packages/**`, the lockfile or `turbo.json`; manual | host |
+| `deploy-catalog.yml` | same, for `apps/catalog/**`; manual | catalog |
+| `deploy-orders.yml` | same, for `apps/orders/**`; manual | orders |
+| `deploy-all.yml` | manual only | catalog, orders, then host |
+| `_deploy-app.yml` | reusable, called by the others | — |
+
+Each run:
+
+1. computes the URLs (`HOST_BASE_URL`, `REMOTE_BASE_URL`, `VITE_*_URL`) from the repository name;
+2. runs `turbo run typecheck build --filter=<app>`;
+3. pushes the app's `dist` to its folder of the `gh-pages` branch with
+   [`peaceiris/actions-gh-pages`](https://github.com/peaceiris/actions-gh-pages) and `keep_files: true`,
+   so the other apps' files are kept. It also writes `.nojekyll`, because federation chunks start with `_`
+   and Jekyll would drop them.
+
+Pushes are serialized with a `gh-pages` concurrency group.
+
+**First-time setup:**
+
+1. Push the repository to GitHub. The workflows trigger on `master`; adjust `branches` if your default
+   branch differs.
+2. **Settings → Actions → General → Workflow permissions**: allow *Read and write permissions*.
+3. Run **Actions → Deploy all**. This creates the `gh-pages` branch.
+4. **Settings → Pages → Build and deployment**: source *Deploy from a branch*, branch `gh-pages`, folder `/ (root)`.
+5. Optional: set the repository variable `PAGES_BASE_URL` (e.g. `https://example.com/` for a custom
+   domain, or `https://<owner>.github.io/` for a `<owner>.github.io` repository). It overrides the
+   default `https://<owner>.github.io/<repo>/`. Run **Deploy all** again after changing it.
+
+**GitHub Pages limitations:**
+
+- GitHub Pages has no rewrites: deep links such as `/<repo>/orders/ORD-1002` are served by `404.html`
+  (a copy of the host's `index.html`), with an HTTP 404 status. The app still renders normally.
+- A deep link reloaded on a **standalone** remote (`/<repo>/mfe/catalog/keyboard`) also gets the host's
+  `404.html`, so the host's "not found" page shows. Remote standalone pages work from their root URL.
+- Cache headers cannot be configured: GitHub Pages serves every file with `max-age=600`, so a redeployed
+  remote can take up to 10 minutes to reach users.
+- Old hashed assets are never removed from `gh-pages`, because files are kept between deployments. Clean the
+  branch manually if it grows too large.
+- At most one deployment runs and one waits in the `gh-pages` concurrency group. If more are queued, the
+  older pending run is cancelled. Re-run it, or use **Deploy all**.
 
 ## Known limitations
 

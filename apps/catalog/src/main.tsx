@@ -6,9 +6,12 @@ import App from "./App.tsx";
 
 // Standalone entry: only used when the catalog runs on its own (http://localhost:5001).
 // When loaded by the host, only ./App is consumed and the host provides the router.
+// The path the app is served from (Vite `base`, absolute at build time), e.g. /federation/mfe/catalog/.
+const basename = new URL(import.meta.env.BASE_URL, window.location.href).pathname;
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename={basename}>
       <main className="mx-auto max-w-[960px] p-6">
         <p className="mb-4 text-sm text-muted-foreground">Catalog micro frontend — standalone mode</p>
         <Routes>

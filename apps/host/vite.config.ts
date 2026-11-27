@@ -11,6 +11,8 @@ export default defineConfig(({ mode }) => {
   const ordersUrl = env.VITE_ORDERS_URL ?? "http://localhost:5002";
 
   return {
+    // Public path of the host, e.g. "/federation/" on GitHub Pages.
+    base: env.HOST_BASE_URL ?? "/",
     server: { port: PORT, strictPort: true, origin: `http://localhost:${PORT}` },
     preview: { port: PORT, strictPort: true },
     build: { target: "chrome89" },

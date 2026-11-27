@@ -1,0 +1,29 @@
+# Manual full deployment (first publish, or after a change to the GitHub Pages URL).
+# Apps are published one after the other: remotes first, then the host.
+name: Deploy all
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  catalog:
+    uses: ./.github/workflows/_deploy-app.yml
+    with:
+      app: catalog
+      target: mfe/catalog
+
+  orders:
+    needs: catalog
+    uses: ./.github/workflows/_deploy-app.yml
+    with:
+      app: orders
+      target: mfe/orders
+
+  host:
+    needs: orders
+    uses: ./.github/workflows/_deploy-app.yml
+    with:
+      app: host
