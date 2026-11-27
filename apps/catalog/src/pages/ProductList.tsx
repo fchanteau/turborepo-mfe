@@ -8,10 +8,13 @@ import type { Product } from "../data.ts";
 
 const priceFormatter = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" });
 
+const availabilityLabel = (inStock: unknown) => (inStock ? "In stock" : "Out of stock");
+
 const columns: DataTableColumnDef<Product>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
+    meta: { filterTitle: "Name" },
     cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
   },
   {
@@ -23,15 +26,17 @@ const columns: DataTableColumnDef<Product>[] = [
   {
     accessorKey: "price",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Price" />,
+    meta: { filterTitle: "Price", filterLabel: (price) => priceFormatter.format(price as number) },
     cell: ({ row }) => priceFormatter.format(row.original.price),
   },
   {
     accessorKey: "inStock",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Availability" />,
+    meta: { filterTitle: "Availability", filterLabel: availabilityLabel },
     enableGlobalFilter: false,
     cell: ({ row }) => (
       <Badge variant={row.original.inStock ? "secondary" : "destructive"}>
-        {row.original.inStock ? "In stock" : "Out of stock"}
+        {availabilityLabel(row.original.inStock)}
       </Badge>
     ),
   },
@@ -72,6 +77,7 @@ export function ProductList() {
         data={products}
         getRowId={(product) => product.id}
         filterPlaceholder="Search products..."
+        enableColumnFilters
         getSubRows={(product) => product.variants}
       />
     </section>

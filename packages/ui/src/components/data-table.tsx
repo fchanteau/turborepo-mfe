@@ -1,12 +1,16 @@
 import * as React from "react"
 import {
+  columnFacetingFeature,
   columnFilteringFeature,
   createExpandedRowModel,
+  createFacetedRowModel,
+  createFacetedUniqueValues,
   createFilteredRowModel,
   createPaginatedRowModel,
   createSortedRowModel,
   filterFn_includesString,
   globalFilteringFeature,
+  metaHelper,
   rowExpandingFeature,
   rowPaginationFeature,
   rowSortingFeature,
@@ -17,17 +21,37 @@ import {
   tableFeatures,
   useTable,
 } from "@tanstack/react-table"
-import type { Column, ColumnDef, Row, RowData } from "@tanstack/react-table"
+import type {
+  Column,
+  ColumnDef,
+  FilterFn,
+  Row,
+  RowData,
+  TableFeatures,
+} from "@tanstack/react-table"
 import {
   ArrowDownIcon,
   ArrowUpDownIcon,
   ArrowUpIcon,
   ChevronRightIcon,
+  FilterIcon,
+  ListFilterIcon,
 } from "lucide-react"
 import { cn } from "cn"
 
+import { Badge } from "#components/badge"
 import { Button } from "#components/button"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "#components/command"
 import { Input } from "#components/input"
+import { Popover, PopoverContent, PopoverTrigger } from "#components/popover"
 import {
   Table,
   TableBody,
@@ -36,19 +60,40 @@ import {
   TableHeader,
   TableRow,
 } from "#components/table"
+import { Toggle } from "#components/toggle"
+
+type DataTableColumnMeta = {
+  /** Column name shown in the filter dropdown. Defaults to a string `header`, then the column id. */
+  filterTitle?: string
+  /** Label of a value in the filter dropdown (e.g. `true` → "In stock"). Defaults to `String(value)`. */
+  filterLabel?: (value: unknown) => string
+}
+
+// Keeps rows whose value is one of the values selected in the column filter dropdown.
+const filterFn_inValues: FilterFn<TableFeatures, RowData> = (
+  row,
+  columnId,
+  filterValue: unknown[]
+) => filterValue.includes(row.getValue(columnId))
+filterFn_inValues.autoRemove = (filterValue: unknown[] | undefined) =>
+  !filterValue?.length
 
 const dataTableFeatures = tableFeatures({
+  columnFacetingFeature,
   columnFilteringFeature,
   globalFilteringFeature,
   rowSortingFeature,
   rowPaginationFeature,
   rowExpandingFeature,
   expandedRowModel: createExpandedRowModel(),
+  facetedRowModel: createFacetedRowModel(),
+  facetedUniqueValues: createFacetedUniqueValues(),
   filteredRowModel: createFilteredRowModel(),
   sortedRowModel: createSortedRowModel(),
   paginatedRowModel: createPaginatedRowModel(),
   filterFns: {
     includesString: filterFn_includesString,
+    inValues: filterFn_inValues,
   },
   sortFns: {
     alphanumeric: sortFn_alphanumeric,
@@ -56,6 +101,7 @@ const dataTableFeatures = tableFeatures({
     datetime: sortFn_datetime,
     text: sortFn_text,
   },
+  columnMeta: metaHelper<DataTableColumnMeta>(),
 })
 
 type DataTableFeatures = typeof dataTableFeatures
@@ -68,6 +114,11 @@ type DataTableProps<TData extends RowData> = {
   data: TData[]
   /** Shows a search input filtering all columns when set. */
   filterPlaceholder?: string
+  /**
+   * Adds a "Filters" toggle that shows a value filter in every filterable column header
+   * (accessor columns, unless `enableColumnFilter: false`). Hiding the filters clears them.
+   */
+  enableColumnFilters?: boolean
   pageSize?: number
   emptyMessage?: React.ReactNode
   getRowId?: (row: TData) => string
@@ -85,6 +136,7 @@ function DataTable<TData extends RowData>({
   columns,
   data,
   filterPlaceholder,
+  enableColumnFilters = false,
   pageSize = 10,
   emptyMessage = "No results.",
   getRowId,
@@ -113,17 +165,26 @@ function DataTable<TData extends RowData>({
       ? (row) => getRowCanExpand?.(row.original) ?? true
       : undefined,
     globalFilterFn: "includesString",
+    defaultColumn: { filterFn: "inValues" },
     // Keeps a parent row visible when only one of its sub-rows matches the search.
     filterFromLeafRows: hasSubRows,
     initialState: { pagination: { pageIndex: 0, pageSize } },
   })
 
   const globalFilter = (table.state.globalFilter as string | undefined) ?? ""
+  const activeColumnFilters = table.state.columnFilters.length
+  const [showColumnFilters, setShowColumnFilters] = React.useState(false)
 
-  // Reveals matching sub-rows while searching.
+  const toggleColumnFilters = (pressed: boolean) => {
+    setShowColumnFilters(pressed)
+    if (!pressed) table.resetColumnFilters(true)
+  }
+
+  // Reveals matching sub-rows while searching or filtering.
   React.useEffect(() => {
-    if (hasSubRows && globalFilter) table.toggleAllRowsExpanded(true)
-  }, [hasSubRows, globalFilter, table])
+    if (hasSubRows && (globalFilter || activeColumnFilters))
+      table.toggleAllRowsExpanded(true)
+  }, [hasSubRows, globalFilter, activeColumnFilters, table])
 
   const rows = table.getRowModel().rows
   const filteredCount = table.getFilteredRowModel().rows.length
@@ -143,14 +204,32 @@ function DataTable<TData extends RowData>({
 
   return (
     <div data-slot="data-table" className={cn("flex flex-col gap-4", className)}>
-      {filterPlaceholder !== undefined && (
-        <Input
-          placeholder={filterPlaceholder}
-          aria-label={filterPlaceholder}
-          value={globalFilter}
-          onChange={(event) => table.setGlobalFilter(event.target.value)}
-          className="max-w-sm"
-        />
+      {(filterPlaceholder !== undefined || enableColumnFilters) && (
+        <div className="flex items-center gap-2">
+          {filterPlaceholder !== undefined && (
+            <Input
+              placeholder={filterPlaceholder}
+              aria-label={filterPlaceholder}
+              value={globalFilter}
+              onChange={(event) => table.setGlobalFilter(event.target.value)}
+              className="max-w-sm"
+            />
+          )}
+          {enableColumnFilters && (
+            <Toggle
+              variant="outline"
+              pressed={showColumnFilters}
+              onPressedChange={toggleColumnFilters}
+              aria-label={showColumnFilters ? "Hide column filters" : "Show column filters"}
+            >
+              <ListFilterIcon data-icon="inline-start" />
+              Filters
+              {activeColumnFilters > 0 && (
+                <Badge variant="secondary">{activeColumnFilters}</Badge>
+              )}
+            </Toggle>
+          )}
+        </div>
       )}
       <div className="overflow-hidden rounded-lg border">
         <Table>
@@ -159,7 +238,13 @@ function DataTable<TData extends RowData>({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead key={header.id} colSpan={header.colSpan}>
-                    {header.isPlaceholder ? null : (
+                    {header.isPlaceholder ? null : showColumnFilters &&
+                      header.column.getCanFilter() ? (
+                      <div className="flex items-center gap-1">
+                        <table.FlexRender header={header} />
+                        <DataTableColumnFilter column={header.column} />
+                      </div>
+                    ) : (
                       <table.FlexRender header={header} />
                     )}
                   </TableHead>
@@ -312,6 +397,95 @@ function expanderColumn<TData extends RowData>(
   }
 }
 
+function DataTableColumnFilter<TData extends RowData, TValue>({
+  column,
+}: {
+  column: Column<DataTableFeatures, TData, TValue>
+}) {
+  const { header, meta } = column.columnDef
+  const title =
+    meta?.filterTitle ?? (typeof header === "string" ? header : column.id)
+  const getLabel = (value: unknown) =>
+    meta?.filterLabel?.(value) ??
+    (value === undefined || value === null || value === ""
+      ? "(empty)"
+      : String(value))
+
+  const selected = (column.getFilterValue() as unknown[] | undefined) ?? []
+  const options = Array.from(column.getFacetedUniqueValues())
+    .map(([value, count]) => ({ value, count, label: getLabel(value) }))
+    .sort((a, b) =>
+      typeof a.value === "number" && typeof b.value === "number"
+        ? a.value - b.value
+        : a.label.localeCompare(b.label)
+    )
+
+  const toggleValue = (value: unknown) => {
+    const next = selected.includes(value)
+      ? selected.filter((item) => item !== value)
+      : [...selected, value]
+    column.setFilterValue(next.length ? next : undefined)
+  }
+
+  return (
+    <Popover>
+      <PopoverTrigger
+        render={
+          <Button
+            type="button"
+            variant={selected.length ? "secondary" : "ghost"}
+            size="icon-sm"
+            aria-label={
+              selected.length
+                ? `Filter ${title} (${selected.length} selected)`
+                : `Filter ${title}`
+            }
+          />
+        }
+      >
+        <FilterIcon className={cn(selected.length && "fill-current")} />
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-64 p-0">
+        <Command>
+          <CommandInput placeholder={`Search ${title}...`} />
+          <CommandList>
+            <CommandEmpty>No values found.</CommandEmpty>
+            <CommandGroup>
+              {options.map((option, index) => (
+                <CommandItem
+                  key={index}
+                  value={option.label}
+                  data-checked={selected.includes(option.value)}
+                  onSelect={() => toggleValue(option.value)}
+                >
+                  <span className="flex-1 truncate">{option.label}</span>
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    {option.count}
+                  </span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+            {selected.length > 0 && (
+              <>
+                <CommandSeparator />
+                <CommandGroup>
+                  <CommandItem
+                    value="__clear__"
+                    onSelect={() => column.setFilterValue(undefined)}
+                    className="justify-center"
+                  >
+                    Clear filter
+                  </CommandItem>
+                </CommandGroup>
+              </>
+            )}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
 type DataTableColumnHeaderProps<TData extends RowData, TValue> = {
   column: Column<DataTableFeatures, TData, TValue>
   title: string
@@ -354,6 +528,7 @@ export { DataTable, DataTableColumnHeader }
 export type {
   DataTableColumnDef,
   DataTableColumnHeaderProps,
+  DataTableColumnMeta,
   DataTableFeatures,
   DataTableProps,
 }

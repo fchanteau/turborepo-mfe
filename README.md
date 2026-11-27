@@ -162,7 +162,7 @@ There are two levels of composition:
 | --- | --- | --- |
 | `apps/host` | Host / shell | Global layout (`Header`, `Navigation`, `Menu`), top-level routing, host-owned pages, loads remotes. Declares the remotes in `federation({ remotes })`. |
 | `apps/catalog`, `apps/orders` | Remotes | Own a business domain. Expose `./App` through `federation({ exposes })`. Also run **standalone** through their own `main.tsx`. |
-| `packages/ui` | Library | shadcn/ui components (`Button`, `Card`, `Badge`, `Input`, `Table`, `Spinner`), custom shared components (`ErrorBoundary`, `DataTable`), the `cn()` class helper and the shared theme (`styles/theme.css`). Consumed **from source** (`exports` points to `src/index.ts`), so it has no build step. |
+| `packages/ui` | Library | shadcn/ui components (`Button`, `Card`, `Badge`, `Input`, `Table`, `Popover`, `Command`, `Toggle`, `Spinner`…), custom shared components (`ErrorBoundary`, `DataTable`), the `cn()` class helper and the shared theme (`styles/theme.css`). Consumed **from source** (`exports` points to `src/index.ts`), so it has no build step. |
 
 Each remote has **two entry points**:
 
@@ -293,10 +293,10 @@ Generated files can be edited freely: they are your code. Custom (non-shadcn) co
 `ErrorBoundary`, also live in `src/components` and are exported the same way.
 
 Current components: `Button`, `Card` (`CardHeader`, `CardTitle`, `CardDescription`, `CardAction`,
-`CardContent`, `CardFooter`), `Badge`, `Input`, `Table` (`TableHeader`, `TableBody`, `TableRow`,
-`TableHead`, `TableCell`…), `Spinner` (shadcn), `ErrorBoundary` (custom) and `DataTable` (custom,
-built on `Table` and [TanStack Table](https://tanstack.com/table) v9 following shadcn's data-table
-guide).
+`CardContent`, `CardFooter`), `Badge`, `Input`, `InputGroup`, `Textarea`, `Table` (`TableHeader`,
+`TableBody`, `TableRow`, `TableHead`, `TableCell`…), `Popover`, `Command` (cmdk), `Dialog`, `Toggle`,
+`Separator`, `Spinner` (shadcn), `ErrorBoundary` (custom) and `DataTable` (custom, built on `Table`
+and [TanStack Table](https://tanstack.com/table) v9 following shadcn's data-table guide).
 
 `DataTable` provides sorting, a global search (`filterPlaceholder`) and pagination. Define columns
 with the `DataTableColumnDef<TData>` type and use `DataTableColumnHeader` for sortable headers, as in
@@ -310,6 +310,14 @@ Rows are plain by default. Expansion is opt-in, and `DataTable` then adds a chev
 - `getSubRows={(row) => row.children}`: tree data, where sub-rows have the same type as their parent
   (catalog example: product `variants`). Nested rows are indented, the header gets an "expand all"
   button, and searching keeps the parents of matching sub-rows and expands them.
+
+Column filters are opt-in with `enableColumnFilters`. A "Filters" toggle (showing the number of
+active filters) displays a filter button in every filterable header (accessor columns, unless
+`enableColumnFilter: false`). It opens a dropdown listing the column's distinct values with their
+counts, with a search input to narrow the list; selecting several values keeps rows matching any of
+them. Hiding the filters clears them. Set `meta` on a column to control the dropdown:
+`filterTitle` (name shown in the dropdown) and `filterLabel` (value label, e.g.
+`(inStock) => (inStock ? "In stock" : "Out of stock")`).
 
 ### Routing
 

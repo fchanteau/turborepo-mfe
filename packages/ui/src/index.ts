@@ -18,6 +18,29 @@ export {
   CardTitle,
 } from "#components/card";
 export {
+  Command,
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+  CommandShortcut,
+} from "#components/command";
+export {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+  DialogTrigger,
+} from "#components/dialog";
+export {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
@@ -27,6 +50,23 @@ export {
   DropdownMenuTrigger,
 } from "#components/dropdown-menu";
 export { Input } from "#components/input";
+export {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+  InputGroupText,
+  InputGroupTextarea,
+} from "#components/input-group";
+export {
+  Popover,
+  PopoverContent,
+  PopoverDescription,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+} from "#components/popover";
+export { Separator } from "#components/separator";
 export { Spinner } from "#components/spinner";
 export {
   Table,
@@ -38,11 +78,14 @@ export {
   TableHeader,
   TableRow,
 } from "#components/table";
+export { Textarea } from "#components/textarea";
+export { Toggle, toggleVariants } from "#components/toggle";
 
 export { DataTable, DataTableColumnHeader } from "#components/data-table";
 export type {
   DataTableColumnDef,
   DataTableColumnHeaderProps,
+  DataTableColumnMeta,
   DataTableFeatures,
   DataTableProps,
 } from "#components/data-table";
