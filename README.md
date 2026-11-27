@@ -535,7 +535,7 @@ All apps share one origin, so no CORS is needed.
 
 | Workflow | Trigger | Deploys |
 | --- | --- | --- |
-| `deploy-host.yml` | push to `master` touching `apps/host/**`, `packages/**`, the lockfile or `turbo.json`; manual | host |
+| `deploy-host.yml` | push to `main` touching `apps/host/**`, `packages/**`, the lockfile or `turbo.json`; manual | host |
 | `deploy-catalog.yml` | same, for `apps/catalog/**`; manual | catalog |
 | `deploy-orders.yml` | same, for `apps/orders/**`; manual | orders |
 | `deploy-all.yml` | manual only | catalog, orders, then host |
@@ -554,7 +554,7 @@ Pushes are serialized with a `gh-pages` concurrency group.
 
 **First-time setup:**
 
-1. Push the repository to GitHub. The workflows trigger on `master`; adjust `branches` if your default
+1. Push the repository to GitHub. The workflows trigger on `main`; adjust `branches` if your default
    branch differs.
 2. **Settings → Actions → General → Workflow permissions**: allow *Read and write permissions*.
 3. Run **Actions → Deploy all**. This creates the `gh-pages` branch.

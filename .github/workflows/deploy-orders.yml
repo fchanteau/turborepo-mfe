@@ -2,7 +2,7 @@ name: Deploy orders
 
 on:
   push:
-    branches: [master]
+    branches: [main]
     paths:
       - apps/orders/**
       - packages/**

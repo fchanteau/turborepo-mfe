@@ -2,7 +2,7 @@ name: Deploy host
 
 on:
   push:
-    branches: [master]
+    branches: [main]
     paths:
       - apps/host/**
       - packages/**
